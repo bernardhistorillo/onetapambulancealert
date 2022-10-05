@@ -21,31 +21,55 @@
 // See https://cordova.apache.org/docs/en/latest/cordova/events/events.html#deviceready
 document.addEventListener('deviceready', onDeviceReady, false);
 
-function onDeviceReady() {
-    // Cordova is now initialized. Have fun!
+let routes = [{
+    path: '/',
+    url: './index.html',
+    name: 'home',
+    options: {
+        browserHistory: true
+    }
+}, {
+    path: '/signup/',
+    url: './signup.html',
+    name: 'signup',
+    options: {
+        browserHistory: true
+    }
+}];
 
-    console.log('Running cordova-' + cordova.platformId + '@' + cordova.version);
-}
-
-var app = new Framework7({
-    // App root element
+let app = new Framework7({
     el: '#app',
-    // App Name
     name: 'One Tap Ambulance Alert',
-    // App id
     id: 'com.onetapambulancealert.test',
-    // Enable swipe panel
     panel: {
         swipe: true,
     },
-    // Add default routes
-    routes: [
-        {
-            path: '/about/',
-            url: 'about.html',
-        },
-    ],
-    // ... other parameters
+    routes: routes,
 });
 
-var mainView = app.views.create('.view-main');
+let $$ = Dom7;
+let view = app.views.create('.view-main');
+let popupTNC = app.popup.create({
+    el: '.popup-tnc',
+});
+
+function onDeviceReady() {
+    document.addEventListener("backbutton", onBackKeyDown, false);
+}
+
+let onBackKeyDown = function() {
+    view.router.back();
+};
+
+app.views.main.router.navigate('/signup/', {reloadCurrent: true});
+
+// localStorage.removeItem("hasAgreedToAgreement");
+let hasAgreedToTNC = localStorage.getItem("hasAgreedToAgreement");
+if(hasAgreedToTNC !== "true") {
+    popupTNC.open();
+}
+
+$$(document).on("click", "#agree-tnc", function() {
+    localStorage.setItem("hasAgreedToAgreement", "true");
+    popupTNC.close();
+});
