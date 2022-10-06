@@ -24,17 +24,15 @@ document.addEventListener('deviceready', onDeviceReady, false);
 let routes = [{
     path: '/',
     url: './index.html',
-    name: 'home',
-    options: {
-        browserHistory: true
-    }
+    name: 'home'
+}, {
+    path: '/terms/',
+    url: './terms.html',
+    name: 'terms'
 }, {
     path: '/signup/',
     url: './signup.html',
-    name: 'signup',
-    options: {
-        browserHistory: true
-    }
+    name: 'signup'
 }];
 
 let app = new Framework7({
@@ -49,9 +47,6 @@ let app = new Framework7({
 
 let $$ = Dom7;
 let view = app.views.create('.view-main');
-let popupTNC = app.popup.create({
-    el: '.popup-tnc',
-});
 
 function onDeviceReady() {
     document.addEventListener("backbutton", onBackKeyDown, false);
@@ -61,15 +56,15 @@ let onBackKeyDown = function() {
     view.router.back();
 };
 
-app.views.main.router.navigate('/signup/', {reloadCurrent: true});
+// app.views.main.router.navigate('/signup/', {reloadCurrent: true});
 
-// localStorage.removeItem("hasAgreedToAgreement");
+localStorage.removeItem("hasAgreedToAgreement");
 let hasAgreedToTNC = localStorage.getItem("hasAgreedToAgreement");
 if(hasAgreedToTNC !== "true") {
-    popupTNC.open();
+    app.views.main.router.navigate('/terms/');
 }
 
 $$(document).on("click", "#agree-tnc", function() {
     localStorage.setItem("hasAgreedToAgreement", "true");
-    popupTNC.close();
+    app.views.main.router.back();
 });
