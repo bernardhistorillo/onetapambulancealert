@@ -35,7 +35,7 @@
     @if(Auth::check())
     <div id="wrapper">
         <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
-            <a class="sidebar-brand d-flex align-items-center justify-content-center" href="{{ route('home.index') }}">
+            <a class="sidebar-brand d-flex align-items-center justify-content-center" href="{{ route('dashboard.index') }}">
                 <div class="sidebar-brand-icon">
                     <img src="{{ asset('img/otaa.png') }}" width="40" alt="One-Tap Ambulance Admin" />
                 </div>
@@ -44,8 +44,8 @@
 
             <hr class="sidebar-divider my-0">
 
-            <li class="nav-item {{ (Route::currentRouteName() == 'home.index') ? 'active' : '' }}">
-                <a class="nav-link" href="{{ route('home.index') }}">
+            <li class="nav-item {{ (Route::currentRouteName() == 'dashboard.index') ? 'active' : '' }}">
+                <a class="nav-link" href="{{ route('dashboard.index') }}">
                     <i class="fas fa-fw fa-tachometer-alt"></i>
                     <span>Dashboard</span>
                 </a>

@@ -18,14 +18,14 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::middleware(['guest'])->group(function() {
-    Route::get('/login', [AuthenticationController::class, 'loginPage'])->name('auth.loginPage');
+    Route::get('/', [AuthenticationController::class, 'loginPage'])->name('auth.loginPage');
     Route::post('/login', [AuthenticationController::class, 'login'])->name('auth.login');
 });
 
 Route::middleware(['auth'])->group(function() {
     Route::get('/logout', [AuthenticationController::class, 'logout'])->name('auth.logout');
 
-    Route::get('/', [HomeController::class, 'index'])->name('home.index');
+    Route::get('/dashboard', [HomeController::class, 'index'])->name('dashboard.index');
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
     Route::get('/incident_reports', [IncidentReportController::class, 'index'])->name('incident_reports.index');
 });
