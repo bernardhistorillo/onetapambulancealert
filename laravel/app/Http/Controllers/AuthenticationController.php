@@ -41,4 +41,40 @@ class AuthenticationController extends Controller
             ]
         ]);
     }
+
+    public function signup(Request $request) {
+        $request->validate([
+            'firstname' => 'required|string',
+            'middlename' => 'required|string',
+            'lastname' => 'required|string',
+            'birthdate' => 'required|date',
+            'email' => 'required|email',
+            'contact_number' => 'required|numeric',
+            'address' => 'required|string',
+            'password' => 'required|string'
+        ]);
+
+        $user = User::where('email', 'LIKE', $request->email)
+            ->first();
+
+        if($user) {
+            abort(422, 'Email already exists');
+        }
+
+        $user = new User();
+        $user->firstname = $request->firstname;
+        $user->middlename = $request->middlename;
+        $user->lastname = $request->lastname;
+        $user->birthdate = $request->birthdate;
+        $user->email = $request->email;
+        $user->contact_number = $request->contact_number;
+        $user->address = $request->address;
+        $user->password = Hash::make($request->password);
+        $user->role = 3;
+        $user->save();
+
+        return response()->json([
+            'user' => $user
+        ]);
+    }
 }
