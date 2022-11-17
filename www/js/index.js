@@ -21,7 +21,10 @@
 // See https://cordova.apache.org/docs/en/latest/cordova/events/events.html#deviceready
 document.addEventListener('deviceready', onDeviceReady, false);
 
-let host = 'http://127.0.0.1:8000';
+let env = "local"; // prod or local
+let host = (env === "local") ? 'http://127.0.0.1:8000' : 'https://otaa.mxtrade.io';
+let hasAgreedToTNC;
+let authUser;
 let routes = [
     {
         path: '/',
@@ -51,32 +54,44 @@ let app = new Framework7({
 let $$ = Dom7;
 let view = app.views.create('.view-main');
 
+let onLoad = function() {
+    // localStorage.removeItem("hasAgreedToAgreement");
+    // localStorage.removeItem("authUser");
+
+    hasAgreedToTNC = localStorage.getItem("hasAgreedToAgreement");
+    authUser = (localStorage.getItem("authUser")) ? JSON.parse(localStorage.getItem("authUser")) : null;
+
+    if(hasAgreedToTNC !== "true") {
+        view.router.navigate('/terms/');
+    } else {
+        if(!authUser) {
+            view.router.navigate('/signup/');
+        }
+    }
+};
 function onDeviceReady() {
     document.addEventListener("backbutton", onBackKeyDown, false);
+    onLoad();
 }
-
 let onBackKeyDown = function() {
     view.router.back();
 };
 
-// app.views.main.router.navigate('/signup/', {reloadCurrent: true});
-
-// localStorage.removeItem("hasAgreedToAgreement");
-// localStorage.removeItem("authUser");
-
-let hasAgreedToTNC = localStorage.getItem("hasAgreedToAgreement");
-let authUser = (localStorage.getItem("authUser")) ? JSON.parse(localStorage.getItem("authUser")) : null;
-if(hasAgreedToTNC !== "true") {
-    app.views.main.router.navigate('/terms/');
-} else {
-    if(!authUser) {
-        app.views.main.router.navigate('/signup/');
-    }
+if(env === "local") {
+    onLoad();
 }
-console.log(authUser);
+
 $$(document).on("click", "#agree-tnc", function() {
-    localStorage.setItem("hasAgreedToAgreement", "true");
+    // localStorage.setItem("hasAgreedToAgreement", "true");
     app.views.main.router.back();
+    app.dialog.preloader("Loading");
+
+    setTimeout(function() {
+        if(!authUser) {
+            view.router.navigate('/signup/');
+        }
+        app.dialog.close();
+    }, 500);
 });
 
 // Authentication
@@ -98,7 +113,7 @@ $$(document).on("submit", "#signup-form", function(e) {
             localStorage.setItem("authUser", JSON.stringify(response.user));
 
             app.dialog.close();
-            app.views.main.router.back();
+            view.router.back();
         },
         error: function(xhr, status) {
             app.dialog.close();

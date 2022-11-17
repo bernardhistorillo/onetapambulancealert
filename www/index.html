@@ -29,14 +29,17 @@
                 * Enable inline JS: add 'unsafe-inline' to default-src
         -->
 <!--        <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: https://ssl.gstatic.com 'unsafe-eval'; style-src 'self' 'unsafe-inline'; media-src *; img-src 'self' data: content:;">-->
+        <meta http-equiv="Content-Security-Policy" content="default-src * 'self' 'unsafe-inline' 'unsafe-eval' data: gap:">
         <meta name="format-detection" content="telephone=no">
         <meta name="msapplication-tap-highlight" content="no">
         <meta name="viewport" content="initial-scale=1, width=device-width, viewport-fit=cover">
         <meta name="color-scheme" content="light dark">
         <link rel="stylesheet" href="css/framework7-bundle.min.css">
+        <link rel="stylesheet" href="css/framework7-icons.css">
         <link rel="stylesheet" href="css/index.css">
         <title>One-Tap Ambulance Alert</title>
     </head>
+    
     <body class="color-theme-red dark">
         <div id="app">
             <div class="view view-main">
@@ -47,22 +50,51 @@
                             <div class="title">One-Tap Ambulance Alert</div>
                         </div>
                     </div>
-                    
-                    <div class="toolbar toolbar-bottom">
-                        <div class="toolbar-inner">
-                            <a href="/" class="link">Link 1</a>
-                            <a href="#" class="link">Link 2</a>
+    
+                    <div class="tabs">
+                        <div id="tab-1" class="page-content tab tab-active">
+                            <div class="display-flex justify-content-center align-items-center padding-vertical" style="min-height:calc(100vh - 112px)">
+                                <div class="text-align-center" style="padding-bottom:20px">
+                                    <img src="img/ambulance-lights.png" style="width:200px" />
+                                    <h2 class="padding-horizontal">Press the button when in<br><span style="font-size:1.3em; color:#e22020">URGENT NEED</span>.</h2>
+                                    <h4 class="padding-horizontal">This will notify medical responders near you.<br>Your pre-filled medical record will be submitted to them.</h4>
+                                    <img src="img/ambulance.png" style="width:50px" />
+                                </div>
+                            </div>
+                        </div>
+    
+                        <div id="tab-2" class="page-content tab">
+                            <div class="display-flex justify-content-center" style="min-height:calc(100vh - 112px)">
+                                <div class="text-align-center" style="padding-bottom:28px">
+                                    <h2 class="padding-horizontal" style="padding-top:10px">Medical Information</h2>
+                                </div>
+                            </div>
+                        </div>
+    
+                        <div id="tab-3" class="page-content tab">
+                            <div class="display-flex justify-content-center" style="min-height:calc(100vh - 112px)">
+                                <div class="text-align-center" style="padding-bottom:28px">
+                                    <h2 class="padding-horizontal" style="padding-top:10px">Account Settings</h2>
+                                </div>
+                            </div>
                         </div>
                     </div>
     
-                    <div class="page-content">
-                        <div class="block-title">Simple List</div>
-                        <div class="list simple-list">
-                            <ul>
-                                <li>Item 1</li>
-                                <li>Item 2</li>
-                                <li>Item 3</li>
-                            </ul>
+                    <div class="toolbar tabbar tabbar-labels toolbar-bottom">
+                        <div class="toolbar-inner">
+                            <a href="#tab-1" class="tab-link tab-link-active">
+                                <i class="f7-icons">house</i>
+                                <span class="tabbar-label">Home</span>
+                            </a>
+                            <a href="#tab-2" class="tab-link">
+                                <i class="f7-icons">heart</i>
+                                <span class="tabbar-label">Medical Info</span>
+                            </a>
+                            <a href="#tab-3" class="tab-link">
+                                <i class="f7-icons">person</i>
+                                <span class="tabbar-label">Account</span>
+                            </a>
+                            <span class="tab-link-highlight" style="width: 33.3333%; transform: translate3d(0%, 0px, 0px);"></span>
                         </div>
                     </div>
                 </div>
