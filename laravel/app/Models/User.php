@@ -58,4 +58,16 @@ class User extends Authenticatable
 
         return $name;
     }
+
+    public function role() {
+        $role = 'Admin';
+
+        if($this->role == 2) {
+            $role = 'Responder';
+        } else if($this->role == 3) {
+            $role = 'End-User';
+        }
+
+        return $role;
+    }
 }

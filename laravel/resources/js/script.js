@@ -6,6 +6,8 @@ let pageOnload = async function() {
 
     if(currentRouteName === "dashboard.index") {
         homeOnload();
+    } else if(currentRouteName === "users.index") {
+        usersOnload();
     }
 };
 let allOnload = async function() {
@@ -22,9 +24,8 @@ let homeOnload = function() {
 
 };
 let usersOnload = function() {
-    $('.data-table').DataTable({
-        order: []
-    });
+    $('.data-table').DataTable({order:[]});
+    $('.data-table').removeClass("invisible");
 };
 let numberFormat = function(x, decimal) {
     x = parseFloat(x);

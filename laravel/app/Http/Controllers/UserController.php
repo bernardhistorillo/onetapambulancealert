@@ -9,7 +9,7 @@ class UserController extends Controller
 {
     public function index(Request $request) {
         $users = User::orderBy('lastname')
-            ->get();
+            ->paginate(15);
 
         return view('users.index', compact('users'));
     }
