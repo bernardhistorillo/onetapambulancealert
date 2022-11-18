@@ -77,6 +77,7 @@ let onLoad = function() {
 };
 let loadHomePage = function() {
     if(authUser) {
+        $$("#user-id").val(authUser.id);
         $$("#firstname").val(authUser.firstname);
         $$("#middlename").val(authUser.middlename);
         $$("#lastname").val(authUser.lastname);
@@ -141,8 +142,11 @@ $$(document).on("submit", "#signup-form", function(e) {
             loadHomePage();
         },
         error: function(xhr, status) {
+            let error = JSON.parse(xhr.response);
+            let errorMessage = (error.errors) ? error.errors : "Unable to connect to server.";
+
             app.dialog.close();
-            app.dialog.alert("Unable to connect to server.", "Network Error");
+            app.dialog.alert(errorMessage, "Error");
         }
     });
 });
@@ -169,9 +173,12 @@ $$(document).on("submit", "#login-form", function(e) {
 
             loadHomePage();
         },
-        error: function(xhr, status) {
+        error: function(xhr, status, message) {
+            let error = JSON.parse(xhr.response);
+            let errorMessage = (error.errors) ? error.errors : "Unable to connect to server.";
+
             app.dialog.close();
-            app.dialog.alert("Unable to connect to server.", "Network Error");
+            app.dialog.alert(errorMessage, "Error");
         }
     });
 });
@@ -180,4 +187,39 @@ $$(document).on("click", "#logout", function() {
     authUser = null;
     localStorage.removeItem("authUser");
     view.router.navigate('/authentication/');
+});
+
+// Account Settings
+$$(document).on("submit", "#account-form", function(e) {
+    e.preventDefault();
+
+    let form = $$(this);
+    app.dialog.preloader("Saving Changes");
+
+    let formData = new FormData(form[0]);
+
+    app.request({
+        method: "POST",
+        url: host + form.attr("action"),
+        data: formData,
+        timeout: 30000,
+        success: function(response, status, xhr) {
+            response = JSON.parse(response);
+            localStorage.setItem("authUser", JSON.stringify(response.user));
+
+            app.dialog.close();
+
+            app.dialog.alert("Contact Information Saved", "Success");
+            $$(".dialog-inner").css('padding-bottom', '5px');
+
+            loadHomePage();
+        },
+        error: function(xhr, status) {
+            let error = JSON.parse(xhr.response);
+            let errorMessage = (error.errors) ? error.errors : "Unable to connect to server.";
+
+            app.dialog.close();
+            app.dialog.alert(errorMessage, "Error");
+        }
+    });
 });

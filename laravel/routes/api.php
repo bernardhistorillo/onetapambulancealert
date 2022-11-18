@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthenticationController;
+use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -17,3 +18,5 @@ use Illuminate\Support\Facades\Route;
 
 Route::post('/signup', [AuthenticationController::class, 'signup'])->name('auth.signup');
 Route::post('/login', [AuthenticationController::class, 'mobileLogin'])->name('auth.login');
+
+Route::post('/updateUser', [UserController::class, 'updateUser'])->name('user.updateUser');

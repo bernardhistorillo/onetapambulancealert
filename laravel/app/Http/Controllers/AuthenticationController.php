@@ -58,7 +58,9 @@ class AuthenticationController extends Controller
             ->first();
 
         if($user) {
-            abort(422, 'Email already exists');
+            return response()->json([
+                'errors' => "Email already exists",
+            ], 422);
         }
 
         $user = new User();
@@ -87,7 +89,9 @@ class AuthenticationController extends Controller
         ]);
 
         if(!Auth::attempt($credentials)) {
-            abort(422, 'Invalid Login Credentials');
+            return response()->json([
+                'errors' => "Invalid Login Credentials",
+            ], 422);
         }
 
         $user = User::find(Auth::user()->id);
