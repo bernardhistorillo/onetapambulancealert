@@ -73,6 +73,26 @@ class AuthenticationController extends Controller
         $user->role = 3;
         $user->save();
 
+        $user['formattedBirthdate'] = Carbon::parse($user['birthdate'])->format('F n, Y');
+
+        return response()->json([
+            'user' => $user
+        ]);
+    }
+
+    public function mobileLogin(Request $request) {
+        $credentials = $request->validate([
+            'email' => 'required|email',
+            'password' => 'required|string'
+        ]);
+
+        if(!Auth::attempt($credentials)) {
+            abort(422, 'Invalid Login Credentials');
+        }
+
+        $user = User::find(Auth::user()->id);
+        $user['formattedBirthdate'] = Carbon::parse($user['birthdate'])->format('F n, Y');
+
         return response()->json([
             'user' => $user
         ]);

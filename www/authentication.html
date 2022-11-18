@@ -1,0 +1,157 @@
+<div data-name="authentication" class="page">
+	<div class="navbar">
+		<div class="navbar-bg"></div>
+		<div class="navbar-inner">
+			<div class="title">Authentication</div>
+		</div>
+	</div>
+	
+	<div class="toolbar tabbar tabbar-labels toolbar-bottom">
+		<div class="toolbar-inner">
+			<a href="#auth-tab-1" class="tab-link tab-link-active">
+				<i class="f7-icons">person_badge_plus</i>
+				<span class="tabbar-label">Sign Up</span>
+			</a>
+			<a href="#auth-tab-2" class="tab-link">
+				<i class="f7-icons">lock</i>
+				<span class="tabbar-label">Log In</span>
+			</a>
+			<span class="tab-link-highlight" style="width: 33.3333%; transform: translate3d(0%, 0px, 0px);"></span>
+		</div>
+	</div>
+	
+	<div class="tabs-animated-wrap">
+		<div class="tabs">
+			<div id="auth-tab-1" class="page-content tab tab-active">
+				<form id="signup-form" action="/api/signup">
+					<div class="block-title">Profile Information</div>
+					<div class="list no-hairlines-md">
+						<ul>
+							<li class="item-content item-input">
+								<div class="item-inner">
+									<div class="item-title item-label">First Name</div>
+									<div class="item-input-wrap">
+										<input type="text" name="firstname" placeholder="First Name" required />
+										<span class="input-clear-button"></span>
+									</div>
+								</div>
+							</li>
+							<li class="item-content item-input">
+								<div class="item-inner">
+									<div class="item-title item-label">Middle Name</div>
+									<div class="item-input-wrap">
+										<input type="text" name="middlename" placeholder="Middle Name" required />
+										<span class="input-clear-button"></span>
+									</div>
+								</div>
+							</li>
+							<li class="item-content item-input">
+								<div class="item-inner">
+									<div class="item-title item-label">Last Name</div>
+									<div class="item-input-wrap">
+										<input type="text" name="lastname" placeholder="Last Name" required />
+										<span class="input-clear-button"></span>
+									</div>
+								</div>
+							</li>
+							<li class="item-content item-input">
+								<div class="item-inner">
+									<div class="item-title item-label">Birthdate</div>
+									<div class="item-input-wrap">
+										<input type="date" name="birthdate" required />
+										<span class="input-clear-button"></span>
+									</div>
+								</div>
+							</li>
+						</ul>
+					</div>
+					
+					<div class="block-title">Contact Information</div>
+					<div class="list no-hairlines-md">
+						<ul>
+							<li class="item-content item-input">
+								<div class="item-inner">
+									<div class="item-title item-label">Email Address</div>
+									<div class="item-input-wrap">
+										<input type="email" name="email" placeholder="Email Address" required />
+										<span class="input-clear-button"></span>
+									</div>
+								</div>
+							</li>
+							<li class="item-content item-input">
+								<div class="item-inner">
+									<div class="item-title item-label">Contact Number</div>
+									<div class="item-input-wrap">
+										<input type="text" name="contact_number" placeholder="11-digit mobile number" required />
+										<span class="input-clear-button"></span>
+									</div>
+								</div>
+							</li>
+							<li class="item-content item-input">
+								<div class="item-inner">
+									<div class="item-title item-label">Complete Address</div>
+									<div class="item-input-wrap">
+										<input type="text" name="address" placeholder="House No., Street, Barangay, Municipality, Province" required />
+										<span class="input-clear-button"></span>
+									</div>
+								</div>
+							</li>
+						</ul>
+					</div>
+					
+					<div class="block-title">Authentication</div>
+					<div class="list no-hairlines-md">
+						<ul>
+							<li class="item-content item-input">
+								<div class="item-inner">
+									<div class="item-title item-label">Password</div>
+									<div class="item-input-wrap">
+										<input type="password" name="password" placeholder="Your password" required />
+										<span class="input-clear-button"></span>
+									</div>
+								</div>
+							</li>
+						</ul>
+					</div>
+					
+					<div class="block">
+						<button type="submit" class="col button button-fill button-round">Submit</button>
+					</div>
+				</form>
+			</div>
+			
+			<div id="auth-tab-2" class="page-content tab">
+				<form id="login-form" action="/api/login">
+					<div class="block-title">Log In</div>
+					<div class="list no-hairlines-md">
+						<ul>
+							<li class="item-content item-input">
+								<div class="item-inner">
+									<div class="item-title item-label">Email Address</div>
+									<div class="item-input-wrap">
+										<input type="email" name="email" placeholder="Email Address" required />
+										<span class="input-clear-button"></span>
+									</div>
+								</div>
+							</li>
+							
+							<li class="item-content item-input">
+								<div class="item-inner">
+									<div class="item-title item-label">Password</div>
+									<div class="item-input-wrap">
+										<input type="password" name="password" placeholder="Your password" required />
+										<span class="input-clear-button"></span>
+									</div>
+								</div>
+							</li>
+						</ul>
+					</div>
+					
+					<div class="block">
+						<button type="submit" class="col button button-fill button-round">Log In</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>

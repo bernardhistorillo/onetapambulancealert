@@ -16,3 +16,4 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::post('/signup', [AuthenticationController::class, 'signup'])->name('auth.signup');
+Route::post('/login', [AuthenticationController::class, 'mobileLogin'])->name('auth.login');
