@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthenticationController;
+use App\Http\Controllers\MedicalRecordController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -20,3 +21,7 @@ Route::post('/signup', [AuthenticationController::class, 'signup'])->name('auth.
 Route::post('/login', [AuthenticationController::class, 'mobileLogin'])->name('auth.login');
 
 Route::post('/updateUser', [UserController::class, 'updateUser'])->name('user.updateUser');
+
+Route::post('/addMedicalRecord', [MedicalRecordController::class, 'addMedicalRecord'])->name('user.addMedicalRecord');
+Route::post('/editMedicalRecord', [MedicalRecordController::class, 'editMedicalRecord'])->name('user.editMedicalRecord');
+Route::post('/deleteMedicalRecord', [MedicalRecordController::class, 'deleteMedicalRecord'])->name('user.deleteMedicalRecord');

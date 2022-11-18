@@ -67,7 +67,7 @@ class AuthenticationController extends Controller
         $user->firstname = $request->firstname;
         $user->middlename = $request->middlename;
         $user->lastname = $request->lastname;
-        $user->birthdate = $request->birthdate;
+        $user->birthdate = Carbon::parse($request->birthdate)->format('Y-m-d');
         $user->email = $request->email;
         $user->contact_number = $request->contact_number;
         $user->address = $request->address;
@@ -75,10 +75,8 @@ class AuthenticationController extends Controller
         $user->role = 3;
         $user->save();
 
-        $user['formattedBirthdate'] = Carbon::parse($user['birthdate'])->format('F n, Y');
-
         return response()->json([
-            'user' => $user
+            'user' => $user->data()
         ]);
     }
 
@@ -95,10 +93,9 @@ class AuthenticationController extends Controller
         }
 
         $user = User::find(Auth::user()->id);
-        $user['formattedBirthdate'] = Carbon::parse($user['birthdate'])->format('F n, Y');
 
         return response()->json([
-            'user' => $user
+            'user' => $user->data()
         ]);
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -69,5 +70,18 @@ class User extends Authenticatable
         }
 
         return $role;
+    }
+
+    public function medicalRecords() {
+        return $this->hasMany(MedicalRecord::class)
+            ->orderBy('id', 'desc')
+            ->get();
+    }
+
+    public function data() {
+        $this->formattedBirthdate = Carbon::parse($this->birthdate)->format('F n, Y');
+        $this->medicalRecords = $this->medicalRecords();
+
+        return $this;
     }
 }

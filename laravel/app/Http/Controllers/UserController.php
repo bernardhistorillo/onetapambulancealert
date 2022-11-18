@@ -29,10 +29,8 @@ class UserController extends Controller
         $user->address = $request->address;
         $user->update();
 
-        $user['formattedBirthdate'] = Carbon::parse($user['birthdate'])->format('F n, Y');
-
         return response()->json([
-            'user' => $user
+            'user' => $user->data()
         ]);
     }
 }
