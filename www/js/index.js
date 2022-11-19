@@ -34,6 +34,10 @@ let routes = [
         path: '/authentication/',
         url: './authentication.html',
         name: 'authentication'
+    }, {
+        path: '/map/',
+        url: './map.html',
+        name: 'map'
     }
 ];
 let app = new Framework7({
@@ -50,6 +54,7 @@ let view = app.views.create('.view-main');
 let host = (env === "local") ? 'http://127.0.0.1:8000' : 'https://otaa.mxtrade.io';
 let hasAgreedToTNC;
 let authUser;
+let responders;
 
 let onDeviceReady = function() {
     document.addEventListener("backbutton", onBackKeyDown, false);
@@ -126,11 +131,14 @@ if(env === "local") {
     onLoad();
 }
 
+// On Initialize Pages
 $$(document).on("page:init", function(page) {
     page = page.detail;
 
     if(page.name === "home") {
         loadHomePage();
+    } else if(page.name === "map") {
+        loadMapPage();
     }
 });
 
@@ -431,3 +439,79 @@ $$(document).on("submit", "#account-form", function(e) {
         }
     });
 });
+
+// Google Maps
+let loadMapPage = async function() {
+    if(!responders) {
+        app.dialog.preloader("Fetching Responders");
+
+        await app.request({
+            method: "POST",
+            url: host + "/api/getResponders",
+            timeout: 30000,
+            success: function(response, status, xhr) {
+                response = JSON.parse(response);
+                localStorage.setItem("responders", JSON.stringify(response.responders));
+                responders = response.responders;
+
+                app.dialog.close();
+            },
+            error: function(xhr, status) {
+                let error = JSON.parse(xhr.response);
+                let errorMessage = (error.errors) ? error.errors : "Unable to connect to server.";
+
+                app.dialog.close();
+                app.dialog.alert(errorMessage, "Error");
+            }
+        });
+    }
+
+    const center = { lat: 14.115669, lng: 122.947139};
+
+    const map = new google.maps.Map(document.getElementById("map"), {
+        zoom: 14,
+        center: center,
+        styles: [
+            {
+                "featureType": "poi",
+                "elementType": "all",
+                "stylers": [
+                    {
+                        "visibility": "off"
+                    }
+                ]
+            },
+            {
+                "featureType": "transit",
+                "elementType": "all",
+                "stylers": [
+                    {
+                        "visibility": "off"
+                    }
+                ]
+            }
+        ]
+    });
+
+    const icon = {
+        url: "img/marker-responder.png",
+        scaledSize: new google.maps.Size(70, 70)
+    };
+
+    let bounds = new google.maps.LatLngBounds();
+    let markers = [];
+    for(let i = 0; i < responders.length; i++) {
+        markers[i] = new google.maps.Marker({
+            position: {
+                lat: parseFloat(responders[i].latitude),
+                lng: parseFloat(responders[i].longitude)
+            },
+            map: map,
+            icon: icon
+        });
+
+        bounds.extend(markers[i].position);
+    }
+
+    map.fitBounds(bounds);
+};
