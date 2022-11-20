@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Referral;
+use App\Models\SubAccount;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -74,6 +75,12 @@ class AuthenticationController extends Controller
         $user->password = Hash::make($request->password);
         $user->role = 3;
         $user->save();
+
+        $subAccount = new SubAccount();
+        $subAccount->user_id = $user['id'];
+        $subAccount->name = $user->fullName();
+        $subAccount->type = 'Human';
+        $subAccount->save();
 
         return response()->json([
             'user' => $user->data()

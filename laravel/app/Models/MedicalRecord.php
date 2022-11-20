@@ -10,4 +10,9 @@ class MedicalRecord extends Model
 {
     use HasFactory;
     use SoftDeletes;
+
+    public function subAccount() {
+        return $this->belongsTo(SubAccount::class)
+            ->first();
+    }
 }

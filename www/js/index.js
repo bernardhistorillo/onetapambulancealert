@@ -20,7 +20,9 @@
 // Wait for the deviceready event before using any of Cordova's device APIs.
 // See https://cordova.apache.org/docs/en/latest/cordova/events/events.html#deviceready
 
-let env = "local"; // prod or local
+let env = "prod"; // prod or local
+let version = "1_0_0"; // prod or local
+
 let routes = [
     {
         path: '/',
@@ -38,6 +40,10 @@ let routes = [
         path: '/map/',
         url: './map.html',
         name: 'map'
+    }, {
+        path: '/sub-accounts/',
+        url: './sub-accounts.html',
+        name: 'sub-accounts'
     }
 ];
 let app = new Framework7({
@@ -52,8 +58,6 @@ let app = new Framework7({
 let $$ = Dom7;
 let view = app.views.create('.view-main');
 let host = (env === "local") ? 'http://127.0.0.1:8000' : 'https://otaa.mxtrade.io';
-let hasAgreedToTNC;
-let authUser;
 let responders;
 
 let onDeviceReady = function() {
@@ -64,11 +68,12 @@ let onBackKeyDown = function() {
     view.router.back();
 };
 let onLoad = function() {
-    // localStorage.removeItem("hasAgreedToAgreement");
-    // localStorage.removeItem("authUser");
+    // localStorage.removeItem("hasAgreedToAgreement" + version);
+    // localStorage.removeItem("selectedSubAccount" + version);
+    // localStorage.removeItem("authUser" + version);
 
-    hasAgreedToTNC = localStorage.getItem("hasAgreedToAgreement");
-    authUser = (localStorage.getItem("authUser")) ? JSON.parse(localStorage.getItem("authUser")) : null;
+    let hasAgreedToTNC = localStorage.getItem("hasAgreedToAgreement" + version);
+    let authUser = (localStorage.getItem("authUser" + version)) ? JSON.parse(localStorage.getItem("authUser" + version)) : null;
 
     if(hasAgreedToTNC !== "true") {
         view.router.navigate('/terms/');
@@ -81,7 +86,7 @@ let onLoad = function() {
     }
 };
 let loadHomePage = function() {
-    authUser = (localStorage.getItem("authUser")) ? JSON.parse(localStorage.getItem("authUser")) : null;
+    let authUser = (localStorage.getItem("authUser" + version)) ? JSON.parse(localStorage.getItem("authUser" + version)) : null;
 
     if(authUser) {
         $$(".user-id").val(authUser.id);
@@ -94,14 +99,31 @@ let loadHomePage = function() {
         $$("#contact_number").val(authUser.contact_number);
         $$("#address").val(authUser.address);
 
-        if(authUser.medicalRecords.length === 0) {
+        let selectedSubAccount = (localStorage.getItem("selectedSubAccount" + version)) ? JSON.parse(localStorage.getItem("selectedSubAccount" + version)) : null;
+        if(!selectedSubAccount) {
+            selectedSubAccount = authUser.subAccounts[0];
+            localStorage.setItem("selectedSubAccount" + version, JSON.stringify(selectedSubAccount));
+        }
+
+        for(let i = 0; i < authUser.subAccounts.length; i++) {
+            if(authUser.subAccounts[i].id === selectedSubAccount.id) {
+                selectedSubAccount = authUser.subAccounts[i];
+                localStorage.setItem("selectedSubAccount" + version, JSON.stringify(selectedSubAccount));
+                break;
+            }
+        }
+
+        $$("[name='sub_account_id']").val(selectedSubAccount.id);
+        $$(".selected-sub-account-name").html(selectedSubAccount.name);
+
+        if(selectedSubAccount.medicalRecords.length === 0) {
             $$("#no-medical-records").removeClass("display-none");
             $$("#medical-records-container").addClass("display-none");
         } else {
             $$("#no-medical-records").addClass("display-none");
             $$("#medical-records-container").removeClass("display-none");
 
-            let medicalRecords = authUser.medicalRecords;
+            let medicalRecords = selectedSubAccount.medicalRecords;
             let content = '';
 
             for(let i = 0; i < medicalRecords.length; i++) {
@@ -139,16 +161,20 @@ $$(document).on("page:init", function(page) {
         loadHomePage();
     } else if(page.name === "map") {
         loadMapPage();
+    } else if(page.name === "sub-accounts") {
+        loadSubAccountsPage();
     }
 });
 
 // terms & Conditions
 $$(document).on("click", "#agree-tnc", function() {
-    // localStorage.setItem("hasAgreedToAgreement", "true");
+    localStorage.setItem("hasAgreedToAgreement" + version, "true");
     app.views.main.router.back();
     app.dialog.preloader("Loading");
 
     setTimeout(function() {
+        let authUser = (localStorage.getItem("authUser" + version)) ? JSON.parse(localStorage.getItem("authUser" + version)) : null;
+
         if(!authUser) {
             view.router.navigate('/authentication/');
         }
@@ -172,7 +198,7 @@ $$(document).on("submit", "#signup-form", function(e) {
         timeout: 30000,
         success: function(response, status, xhr) {
             response = JSON.parse(response);
-            localStorage.setItem("authUser", JSON.stringify(response.user));
+            localStorage.setItem("authUser" + version, JSON.stringify(response.user));
 
             app.dialog.close();
             view.router.back();
@@ -204,7 +230,7 @@ $$(document).on("submit", "#login-form", function(e) {
         timeout: 30000,
         success: function(response, status, xhr) {
             response = JSON.parse(response);
-            localStorage.setItem("authUser", JSON.stringify(response.user));
+            localStorage.setItem("authUser" + version, JSON.stringify(response.user));
 
             app.dialog.close();
             view.router.back();
@@ -222,8 +248,8 @@ $$(document).on("submit", "#login-form", function(e) {
 });
 
 $$(document).on("click", "#logout", function() {
-    authUser = null;
     localStorage.removeItem("authUser");
+    localStorage.removeItem("selectedSubAccount");
     view.router.navigate('/authentication/');
 });
 
@@ -243,7 +269,7 @@ $$(document).on("submit", "#medical-record-form", function(e) {
         timeout: 30000,
         success: function(response, status, xhr) {
             response = JSON.parse(response);
-            localStorage.setItem("authUser", JSON.stringify(response.user));
+            localStorage.setItem("authUser" + version, JSON.stringify(response.user));
 
             form.find("[name='title']").val("");
             form.find("[name='details']").val("");
@@ -266,7 +292,7 @@ $$(document).on("submit", "#medical-record-form", function(e) {
 $$(document).on("click", ".view-medical-record", function() {
     let medicalRecordId = $$(this).attr('data-medical-record-id');
     let title = $$(this).find('.item-title').html();
-    let details = $$(this).find('.item-text').html();
+    let details = ($$(this).find('.item-text').html()) ? $$(this).find('.item-text').html() : '';
 
     app.dialog.create({
         title: title,
@@ -297,7 +323,7 @@ $$(document).on("click", ".view-medical-record", function() {
                                         timeout: 30000,
                                         success: function(response, status, xhr) {
                                             response = JSON.parse(response);
-                                            localStorage.setItem("authUser", JSON.stringify(response.user));
+                                            localStorage.setItem("authUser" + version, JSON.stringify(response.user));
 
                                             app.dialog.close();
                                             app.dialog.alert("Medical record successfully deleted.", "Success");
@@ -372,7 +398,7 @@ $$(document).on("click", ".view-medical-record", function() {
                                         timeout: 30000,
                                         success: function(response, status, xhr) {
                                             response = JSON.parse(response);
-                                            localStorage.setItem("authUser", JSON.stringify(response.user));
+                                            localStorage.setItem("authUser" + version, JSON.stringify(response.user));
 
                                             app.dialog.close();
                                             app.dialog.alert("Medical record successfully saved.", "Success");
@@ -423,7 +449,7 @@ $$(document).on("submit", "#account-form", function(e) {
         timeout: 30000,
         success: function(response, status, xhr) {
             response = JSON.parse(response);
-            localStorage.setItem("authUser", JSON.stringify(response.user));
+            localStorage.setItem("authUser" + version, JSON.stringify(response.user));
 
             app.dialog.close();
             app.dialog.alert("Contact Information Saved", "Success");
@@ -440,6 +466,96 @@ $$(document).on("submit", "#account-form", function(e) {
     });
 });
 
+// Sub Accounts
+let loadSubAccountsPage = async function() {
+    let authUser = (localStorage.getItem("authUser" + version)) ? JSON.parse(localStorage.getItem("authUser" + version)) : null;
+    let selectedSubAccount = (localStorage.getItem("selectedSubAccount" + version)) ? JSON.parse(localStorage.getItem("selectedSubAccount" + version)) : null;
+
+    if(authUser) {
+        $$("[name='user_id']").val(authUser.id);
+
+        let content = '';
+
+        for(let i = 0; i < authUser.subAccounts.length; i++) {
+            content += '    <li>';
+            content += '        <label class="item-radio item-radio-icon-end item-content">';
+            content += '            <input type="radio" name="sub_accounts" value="' + authUser.subAccounts[i].id + '" ' + ((authUser.subAccounts[i].id === selectedSubAccount.id) ? 'checked' : '') + '>';
+            content += '            <i class="icon icon-radio"></i>';
+            content += '            <div class="item-media">';
+            if(authUser.subAccounts[i].type === 'Human') {
+                content += '            <i class="f7-icons">person_alt</i>';
+            } else {
+                content += '            <i class="f7-icons">paw</i>';
+            }
+            content += '            </div>';
+            content += '            <div class="item-inner">';
+            content += '                <div class="item-title" id="sub-account-name">' + authUser.subAccounts[i].name + '</div>';
+            content += '            </div>';
+            content += '        </label>';
+            content += '    </li>';
+        }
+
+        $$("#sub-accounts-container").html(content);
+    }
+};
+
+$$(document).on("submit", "#add-account-form", function(e) {
+    e.preventDefault();
+
+    let form = $$(this);
+    app.dialog.preloader("Adding Sub-Account");
+
+    let formData = new FormData(form[0]);
+
+    app.request({
+        method: "POST",
+        url: host + form.attr("action"),
+        data: formData,
+        timeout: 30000,
+        success: function(response, status, xhr) {
+            response = JSON.parse(response);
+            localStorage.setItem("authUser" + version, JSON.stringify(response.user));
+
+            form.find("[name='name']").val("");
+            form.find("[name='type'][value='Human']").prop("checked", true);
+
+            app.dialog.close();
+            app.dialog.alert("Sub-account added.", "Success");
+
+            loadHomePage();
+            loadSubAccountsPage();
+        },
+        error: function(xhr, status) {
+            let error = JSON.parse(xhr.response);
+            let errorMessage = (error.errors) ? error.errors : "Unable to connect to server.";
+
+            app.dialog.close();
+            app.dialog.alert(errorMessage, "Error");
+        }
+    });
+});
+
+$$(document).on("click", "#switch-account", function() {
+    app.dialog.preloader("Switching");
+
+    setTimeout(function() {
+        let subAccountId = $$("[name='sub_accounts']:checked").val();
+        let authUser = (localStorage.getItem("authUser" + version)) ? JSON.parse(localStorage.getItem("authUser" + version)) : null;
+
+        for(let i = 0; i < authUser.subAccounts.length; i++) {
+            if(authUser.subAccounts[i].id === parseInt(subAccountId)) {
+                localStorage.setItem("selectedSubAccount" + version, JSON.stringify(authUser.subAccounts[i]));
+                loadHomePage();
+
+                break;
+            }
+        }
+
+        app.dialog.close();
+        view.router.back();
+    }, 500);
+});
+
 // Google Maps
 let loadMapPage = async function() {
     if(!responders) {
@@ -451,7 +567,6 @@ let loadMapPage = async function() {
             timeout: 30000,
             success: function(response, status, xhr) {
                 response = JSON.parse(response);
-                localStorage.setItem("responders", JSON.stringify(response.responders));
                 responders = response.responders;
 
                 app.dialog.close();

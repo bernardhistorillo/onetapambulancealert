@@ -72,15 +72,20 @@ class User extends Authenticatable
         return $role;
     }
 
-    public function medicalRecords() {
-        return $this->hasMany(MedicalRecord::class)
-            ->orderBy('id', 'desc')
+    public function subAccounts() {
+        return $this->hasMany(SubAccount::class)
             ->get();
     }
 
     public function data() {
         $this->formattedBirthdate = Carbon::parse($this->birthdate)->format('F n, Y');
-        $this->medicalRecords = $this->medicalRecords();
+        $subAccounts = $this->subAccounts();
+
+        foreach($subAccounts as $subAccount) {
+            $subAccount['medicalRecords'] = $subAccount->medicalRecords();
+        }
+
+        $this->subAccounts = $subAccounts;
 
         return $this;
     }

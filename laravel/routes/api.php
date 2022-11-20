@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthenticationController;
 use App\Http\Controllers\MedicalRecordController;
 use App\Http\Controllers\ResponderController;
+use App\Http\Controllers\SubAccountController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -28,3 +29,5 @@ Route::post('/editMedicalRecord', [MedicalRecordController::class, 'editMedicalR
 Route::post('/deleteMedicalRecord', [MedicalRecordController::class, 'deleteMedicalRecord'])->name('user.deleteMedicalRecord');
 
 Route::post('/getResponders', [ResponderController::class, 'getResponders'])->name('user.getResponders');
+
+Route::post('/addSubAccount', [SubAccountController::class, 'addSubAccount'])->name('user.addSubAccount');

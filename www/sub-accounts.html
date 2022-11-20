@@ -1,0 +1,65 @@
+<div data-name="sub-accounts" class="page">
+	<div class="navbar">
+		<div class="navbar-bg"></div>
+		<div class="navbar-inner">
+			<div class="left">
+				<a href="#" class="link back ripple-inset">
+					<i class="icon icon-back"></i>
+				</a>
+			</div>
+			<div class="title">Sub-Accounts</div>
+		</div>
+	</div>
+	
+	<div class="page-content">
+		<div class="block-title">Sub-Accounts</div>
+		<div class="list no-hairlines-md">
+			<ul id="sub-accounts-container"></ul>
+		</div>
+		<div class="block" style="padding-bottom:30px">
+			<button type="submit" class="col button button-fill button-round" id="switch-account">Switch to Selected Account</button>
+		</div>
+		
+		<form id="add-account-form" action="/api/addSubAccount">
+			<div class="block-title">Add an account. <span style="font-style:italic">(Can be for your pet)</span></div>
+			<div class="list no-hairlines-md">
+				<ul>
+					<li class="item-content item-input">
+						<div class="item-inner">
+							<div class="item-title item-label">Name</div>
+							<div class="item-input-wrap">
+								<input type="hidden" class="user-id" name="user_id" required />
+								<input type="text" name="name" placeholder="e.g. Juan Dela Cruz, Brownie" required />
+								<span class="input-clear-button"></span>
+							</div>
+						</div>
+					</li>
+					
+					<li>
+						<label class="item-radio item-radio-icon-end item-content">
+							<input type="radio" name="type" value="Human" checked>
+							<i class="icon icon-radio"></i>
+							<div class="item-inner">
+								<div class="item-title">Human</div>
+							</div>
+						</label>
+					</li>
+					
+					<li>
+						<label class="item-radio item-radio-icon-end item-content">
+							<input type="radio" name="type" value="Animal">
+							<i class="icon icon-radio"></i>
+							<div class="item-inner">
+								<div class="item-title">Animal</div>
+							</div>
+						</label>
+					</li>
+				</ul>
+			</div>
+			
+			<div class="block">
+				<button type="submit" class="col button button-fill button-round">Add Account</button>
+			</div>
+		</form>
+	</div>
+</div>
