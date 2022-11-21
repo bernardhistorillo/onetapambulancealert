@@ -20,8 +20,8 @@
 // Wait for the deviceready event before using any of Cordova's device APIs.
 // See https://cordova.apache.org/docs/en/latest/cordova/events/events.html#deviceready
 
-let env = "prod"; // prod or local
-let version = "1_0_0"; // prod or local
+let env = "local"; // prod or local
+let version = "1_0_1"; // prod or local
 
 let routes = [
     {
@@ -37,13 +37,17 @@ let routes = [
         url: './authentication.html',
         name: 'authentication'
     }, {
-        path: '/map/',
-        url: './map.html',
-        name: 'map'
+        path: '/responders/',
+        url: './responders.html',
+        name: 'responders'
     }, {
         path: '/sub-accounts/',
         url: './sub-accounts.html',
         name: 'sub-accounts'
+    }, {
+        path: '/alert/',
+        url: './alert.html',
+        name: 'alert'
     }
 ];
 let app = new Framework7({
@@ -58,12 +62,13 @@ let app = new Framework7({
 let $$ = Dom7;
 let view = app.views.create('.view-main');
 let host = (env === "local") ? 'http://127.0.0.1:8000' : 'https://otaa.mxtrade.io';
-let responders;
+let gpsDialog;
 
 let onDeviceReady = function() {
     document.addEventListener("backbutton", onBackKeyDown, false);
     onLoad();
 };
+
 let onBackKeyDown = function() {
     view.router.back();
 };
@@ -86,6 +91,8 @@ let onLoad = function() {
     }
 };
 let loadHomePage = function() {
+    clockAudio = (env === "prod") ? new Media('https://otaa.mxtrade.io/img/clock.mp3') : new Audio("audio/clock.mp3");
+
     let authUser = (localStorage.getItem("authUser" + version)) ? JSON.parse(localStorage.getItem("authUser" + version)) : null;
 
     if(authUser) {
@@ -144,6 +151,13 @@ let loadHomePage = function() {
             $$("#medical-records-container ul").html(content);
         }
     }
+
+    gpsDialog = app.dialog.create({
+        title: "Turn on GPS Location",
+        text: "Please turn on your GPS in your location settings."
+    });
+
+    getLocation();
 };
 
 document.addEventListener('deviceready', onDeviceReady, false);
@@ -159,10 +173,26 @@ $$(document).on("page:init", function(page) {
 
     if(page.name === "home") {
         loadHomePage();
-    } else if(page.name === "map") {
-        loadMapPage();
+    } else if(page.name === "responders") {
+        loadRespondersPage();
     } else if(page.name === "sub-accounts") {
         loadSubAccountsPage();
+    } else if(page.name === "alert") {
+        app.dialog.preloader("Loading");
+
+        if(!clockAudio) {
+            clockAudio = (env === "prod") ? new Media('https://otaa.mxtrade.io/img/clock.mp3', loadAlertPage()) : new Audio("audio/clock.mp3", loadAlertPage());
+        } else {
+            loadAlertPage()
+        }
+    }
+});
+
+$$(document).on("page:beforeout", function(page) {
+    page = page.detail;
+
+    if(page.name === "alert") {
+        exitAlertPage();
     }
 });
 
@@ -556,8 +586,9 @@ $$(document).on("click", "#switch-account", function() {
     }, 500);
 });
 
-// Google Maps
-let loadMapPage = async function() {
+// Responders
+let responders;
+let loadRespondersPage = async function() {
     if(!responders) {
         app.dialog.preloader("Fetching Responders");
 
@@ -608,9 +639,19 @@ let loadMapPage = async function() {
         ]
     });
 
-    const icon = {
-        url: "img/marker-responder.png",
-        scaledSize: new google.maps.Size(70, 70)
+    const markerHuman = {
+        url: "img/marker-human.png",
+        scaledSize: new google.maps.Size(35, 50)
+    };
+
+    const markerVeterinary = {
+        url: "img/marker-veterinary.png",
+        scaledSize: new google.maps.Size(35, 50)
+    };
+
+    const markerUser = {
+        url: "img/marker-user.png",
+        scaledSize: new google.maps.Size(35, 50)
     };
 
     let bounds = new google.maps.LatLngBounds();
@@ -622,7 +663,8 @@ let loadMapPage = async function() {
                 lng: parseFloat(responders[i].longitude)
             },
             map: map,
-            icon: icon
+            // animation: google.maps.Animation.BOUNCE,
+            icon: (responders[i].type === "Human") ? markerHuman : markerVeterinary
         });
 
         bounds.extend(markers[i].position);
@@ -630,3 +672,125 @@ let loadMapPage = async function() {
 
     map.fitBounds(bounds);
 };
+
+// Alert
+let alertInterval;
+let gauge;
+let totalSeconds = 8;
+let remainingSeconds;
+let clockAudio;
+let loadAlertPage = function() {
+    app.dialog.close();
+
+    let content = ' <div class="width-100" style="position:absolute; top:56px; left:0">';
+    content += '        <img src="img/ambulance-lights-2.png" style="width:130px" />';
+    content += '    </div>';
+    content += '    <div class="width-100" id="ambulance-light" style="position:absolute; top:56px; left:0; transition:1s">';
+    content += '        <img src="img/ambulance-lights.png" style="width:130px" />';
+    content += '    </div>';
+    content += '    <div class="width-100" id="remaining-seconds" style="position:absolute; top:94px; left:0; font-size:2.6em; font-weight:bold">8</div>';
+
+    $$(".gauge").append(content);
+
+    gauge = app.gauge.create({
+        el: '.gauge',
+        value: 0,
+        size: 250,
+        borderColor: "#ff3b30",
+        borderWidth: 20,
+        borderBgColor: "#eeeeee"
+    })
+
+    remainingSeconds = totalSeconds;
+    $$("#update-alert-countdown").html("Pause");
+    $$("#update-alert-countdown").attr("data-action", "pause");
+
+    loadAlertInterval();
+};
+let loadAlertInterval = function() {
+    if(remainingSeconds >= 0) {
+        alertInterval = setInterval(function() {
+            if(env === "prod") { clockAudio.stop(); } else { clockAudio.load(); }
+            clockAudio.play();
+
+            let percentage = (totalSeconds - (--remainingSeconds)) / totalSeconds;
+
+            $$("#remaining-seconds").html(remainingSeconds);
+
+            gauge.update({
+                value: percentage,
+                borderColor: (remainingSeconds % 2 === 0) ? "#ff3b30" : "#b15050",
+            });
+
+            $$("#ambulance-light").css("opacity", (remainingSeconds % 2 === 0) ? 1 : 0);
+
+            if(remainingSeconds <= 0) {
+                clearInterval(alertInterval);
+            }
+        }, 1000);
+    }
+};
+let exitAlertPage = function() {
+    clearInterval(alertInterval);
+    if(env === "prod") { clockAudio.stop(); } else { clockAudio.load(); }
+};
+
+$$(document).on("click", ".gauge", function() {
+    $$("#update-alert-countdown").trigger("click");
+});
+
+$$(document).on("click", "#update-alert-countdown", function() {
+    if(remainingSeconds > 0) {
+        let action = $$(this).attr("data-action");
+
+        if(action === "pause") {
+            clearInterval(alertInterval);
+            if(env === "prod") { clockAudio.stop(); } else { clockAudio.load(); }
+
+            $$(this).html("Resume");
+            $$(this).attr("data-action", "resume");
+        } else {
+            loadAlertInterval();
+
+            $$(this).html("Pause");
+            $$(this).attr("data-action", "pause");
+        }
+    }
+});
+
+// Emergency Response
+let cooordinates;
+
+let getLocation = function() {
+    navigator.geolocation.getCurrentPosition(getLocationOnSuccess, getLocationOnError, {
+        maximumAge: 3000,
+        timeout: 5000,
+        enableHighAccuracy: true
+    });
+};
+
+let getLocationOnSuccess = function(position) {
+    if(gpsDialog.opened) {
+        gpsDialog.close();
+    }
+
+    cooordinates = {
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude
+    };
+
+    console.log("latitude: " + cooordinates.latitude);
+    console.log("longitude: " + cooordinates.longitude);
+
+    setTimeout(function() {
+        getLocation();
+    }, 2000);
+};
+
+function getLocationOnError(error) {
+    gpsDialog.open();
+
+    setTimeout(function() {
+        getLocation();
+    }, 2000);
+}
