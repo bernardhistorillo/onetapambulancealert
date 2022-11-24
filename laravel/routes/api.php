@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AlertController;
 use App\Http\Controllers\AuthenticationController;
 use App\Http\Controllers\MedicalRecordController;
 use App\Http\Controllers\ResponderController;
@@ -31,3 +32,5 @@ Route::post('/deleteMedicalRecord', [MedicalRecordController::class, 'deleteMedi
 Route::post('/getResponders', [ResponderController::class, 'getResponders'])->name('user.getResponders');
 
 Route::post('/addSubAccount', [SubAccountController::class, 'addSubAccount'])->name('user.addSubAccount');
+
+Route::post('/alert', [AlertController::class, 'alert'])->name('user.alert');

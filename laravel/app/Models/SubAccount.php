@@ -16,7 +16,13 @@ class SubAccount extends Model
 
     public function medicalRecords() {
         return $this->hasMany(MedicalRecord::class)
-            ->orderBy('id', 'desc')
+            ->orderBy('medical_records.id', 'desc')
+            ->get();
+    }
+
+    public function alerts() {
+        return $this->hasMany(Alert::class)
+            ->orderBy('alerts.id', 'desc')
             ->get();
     }
 }

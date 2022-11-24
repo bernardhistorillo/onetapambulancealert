@@ -83,6 +83,13 @@ class User extends Authenticatable
 
         foreach($subAccounts as $subAccount) {
             $subAccount['medicalRecords'] = $subAccount->medicalRecords();
+            $subAccount['alerts'] = $subAccount->alerts();
+
+            foreach($subAccount['alerts'] as $alert) {
+                if($alert['status'] == 'Ongoing') {
+                    $alert['messages'] = $alert->messages();
+                }
+            }
         }
 
         $this->subAccounts = $subAccounts;

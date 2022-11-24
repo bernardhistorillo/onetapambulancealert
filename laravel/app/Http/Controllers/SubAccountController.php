@@ -24,10 +24,8 @@ class SubAccountController extends Controller
         $subAccount->type = $request->type;
         $subAccount->save();
 
-        $user = User::find($subAccount['user_id']);
-
         return response()->json([
-            'user' => $user->data()
+            'user' => $subAccount->user()->data()
         ]);
     }
 }

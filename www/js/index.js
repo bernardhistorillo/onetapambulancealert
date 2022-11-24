@@ -48,6 +48,10 @@ let routes = [
         path: '/alert/',
         url: './alert.html',
         name: 'alert'
+    }, {
+        path: '/emergency/',
+        url: './emergency.html',
+        name: 'emergency'
     }
 ];
 let app = new Framework7({
@@ -62,7 +66,6 @@ let app = new Framework7({
 let $$ = Dom7;
 let view = app.views.create('.view-main');
 let host = (env === "local") ? 'http://127.0.0.1:8000' : 'https://otaa.mxtrade.io';
-let gpsDialog;
 
 let onDeviceReady = function() {
     document.addEventListener("backbutton", onBackKeyDown, false);
@@ -78,7 +81,7 @@ let onLoad = function() {
     // localStorage.removeItem("authUser" + version);
 
     let hasAgreedToTNC = localStorage.getItem("hasAgreedToAgreement" + version);
-    let authUser = (localStorage.getItem("authUser" + version)) ? JSON.parse(localStorage.getItem("authUser" + version)) : null;
+    let authUser = getUser();
 
     if(hasAgreedToTNC !== "true") {
         view.router.navigate('/terms/');
@@ -90,10 +93,117 @@ let onLoad = function() {
         }
     }
 };
+
+// GPS Location
+let cooordinates;
+let gpsDialog;
+
+let getLocation = function() {
+    if(env === "prod") {
+        navigator.geolocation.getCurrentPosition(getLocationOnSuccess, getLocationOnError, {
+            maximumAge: 3000,
+            timeout: 5000,
+            enableHighAccuracy: true
+        });
+    } else {
+        getLocationOnSuccess();
+    }
+};
+
+let getMapAssets = function() {
+    return {
+        markerHuman: {
+            url: "img/marker-human.png",
+            scaledSize: new google.maps.Size(35, 50)
+        },
+        markerVeterinary: {
+            url: "img/marker-veterinary.png",
+            scaledSize: new google.maps.Size(35, 50)
+        },
+        markerUser: {
+            url: "img/marker-user.png",
+            scaledSize: new google.maps.Size(35, 50)
+        },
+        mapStyles: [
+            {
+                "featureType": "poi",
+                "elementType": "all",
+                "stylers": [
+                    {
+                        "visibility": "off"
+                    }
+                ]
+            }, {
+                "featureType": "transit",
+                "elementType": "all",
+                "stylers": [
+                    {
+                        "visibility": "off"
+                    }
+                ]
+            }
+        ]
+    }
+};
+
+let getLocationOnSuccess = function(position) {
+    if(gpsDialog.opened) {
+        gpsDialog.close();
+    }
+
+    if(env === "prod") {
+        cooordinates = {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude
+        };
+    } else {
+        cooordinates = {
+            latitude: 14.1141255,
+            longitude: 122.9548469
+        };
+    }
+
+    setTimeout(function() {
+        getLocation();
+    }, 2000);
+};
+
+function getLocationOnError(error) {
+    gpsDialog.open();
+
+    setTimeout(function() {
+        getLocation();
+    }, 2000);
+}
+
+// Home Page
+let clockAudio;
+let getUser = function() {
+    return (localStorage.getItem("authUser" + version)) ? JSON.parse(localStorage.getItem("authUser" + version)) : null;
+}
+let getSelectedSubAccount = function() {
+    let authUser = getUser();
+    let selectedSubAccount = (localStorage.getItem("selectedSubAccount" + version)) ? JSON.parse(localStorage.getItem("selectedSubAccount" + version)) : null;
+
+    if(!selectedSubAccount) {
+        selectedSubAccount = authUser.subAccounts[0];
+    } else {
+        for(let i = 0; i < authUser.subAccounts.length; i++) {
+            if(authUser.subAccounts[i].id === selectedSubAccount.id) {
+                selectedSubAccount = authUser.subAccounts[i];
+                break;
+            }
+        }
+    }
+
+    localStorage.setItem("selectedSubAccount" + version, JSON.stringify(selectedSubAccount));
+
+    return selectedSubAccount;
+}
 let loadHomePage = function() {
     clockAudio = (env === "prod") ? new Media('https://otaa.mxtrade.io/img/clock.mp3') : new Audio("audio/clock.mp3");
 
-    let authUser = (localStorage.getItem("authUser" + version)) ? JSON.parse(localStorage.getItem("authUser" + version)) : null;
+    let authUser = getUser();
 
     if(authUser) {
         $$(".user-id").val(authUser.id);
@@ -106,19 +216,7 @@ let loadHomePage = function() {
         $$("#contact_number").val(authUser.contact_number);
         $$("#address").val(authUser.address);
 
-        let selectedSubAccount = (localStorage.getItem("selectedSubAccount" + version)) ? JSON.parse(localStorage.getItem("selectedSubAccount" + version)) : null;
-        if(!selectedSubAccount) {
-            selectedSubAccount = authUser.subAccounts[0];
-            localStorage.setItem("selectedSubAccount" + version, JSON.stringify(selectedSubAccount));
-        }
-
-        for(let i = 0; i < authUser.subAccounts.length; i++) {
-            if(authUser.subAccounts[i].id === selectedSubAccount.id) {
-                selectedSubAccount = authUser.subAccounts[i];
-                localStorage.setItem("selectedSubAccount" + version, JSON.stringify(selectedSubAccount));
-                break;
-            }
-        }
+        let selectedSubAccount = getSelectedSubAccount();
 
         $$("[name='sub_account_id']").val(selectedSubAccount.id);
         $$(".selected-sub-account-name").html(selectedSubAccount.name);
@@ -160,9 +258,9 @@ let loadHomePage = function() {
     getLocation();
 };
 
+// Onload
 document.addEventListener('deviceready', onDeviceReady, false);
 
-// Onload
 if(env === "local") {
     onLoad();
 }
@@ -178,13 +276,9 @@ $$(document).on("page:init", function(page) {
     } else if(page.name === "sub-accounts") {
         loadSubAccountsPage();
     } else if(page.name === "alert") {
-        app.dialog.preloader("Loading");
-
-        if(!clockAudio) {
-            clockAudio = (env === "prod") ? new Media('https://otaa.mxtrade.io/img/clock.mp3', loadAlertPage()) : new Audio("audio/clock.mp3", loadAlertPage());
-        } else {
-            loadAlertPage()
-        }
+        loadAlertPage();
+    } else if(page.name === "emergency") {
+        loadEmergencyPage();
     }
 });
 
@@ -193,6 +287,8 @@ $$(document).on("page:beforeout", function(page) {
 
     if(page.name === "alert") {
         exitAlertPage();
+    } else if(page.name === "emergency") {
+        exitEmergencyPage();
     }
 });
 
@@ -203,7 +299,7 @@ $$(document).on("click", "#agree-tnc", function() {
     app.dialog.preloader("Loading");
 
     setTimeout(function() {
-        let authUser = (localStorage.getItem("authUser" + version)) ? JSON.parse(localStorage.getItem("authUser" + version)) : null;
+        let authUser = getUser();
 
         if(!authUser) {
             view.router.navigate('/authentication/');
@@ -278,8 +374,9 @@ $$(document).on("submit", "#login-form", function(e) {
 });
 
 $$(document).on("click", "#logout", function() {
-    localStorage.removeItem("authUser");
-    localStorage.removeItem("selectedSubAccount");
+    localStorage.removeItem("authUser" + version);
+    localStorage.removeItem("selectedSubAccount" + version);
+
     view.router.navigate('/authentication/');
 });
 
@@ -498,8 +595,8 @@ $$(document).on("submit", "#account-form", function(e) {
 
 // Sub Accounts
 let loadSubAccountsPage = async function() {
-    let authUser = (localStorage.getItem("authUser" + version)) ? JSON.parse(localStorage.getItem("authUser" + version)) : null;
-    let selectedSubAccount = (localStorage.getItem("selectedSubAccount" + version)) ? JSON.parse(localStorage.getItem("selectedSubAccount" + version)) : null;
+    let authUser = getUser();
+    let selectedSubAccount = getSelectedSubAccount();
 
     if(authUser) {
         $$("[name='user_id']").val(authUser.id);
@@ -570,7 +667,7 @@ $$(document).on("click", "#switch-account", function() {
 
     setTimeout(function() {
         let subAccountId = $$("[name='sub_accounts']:checked").val();
-        let authUser = (localStorage.getItem("authUser" + version)) ? JSON.parse(localStorage.getItem("authUser" + version)) : null;
+        let authUser = getUser();
 
         for(let i = 0; i < authUser.subAccounts.length; i++) {
             if(authUser.subAccounts[i].id === parseInt(subAccountId)) {
@@ -612,47 +709,10 @@ let loadRespondersPage = async function() {
         });
     }
 
-    const center = { lat: 14.115669, lng: 122.947139};
-
-    const map = new google.maps.Map(document.getElementById("map"), {
+    const map = new google.maps.Map(document.getElementById("map-responders"), {
         zoom: 14,
-        center: center,
-        styles: [
-            {
-                "featureType": "poi",
-                "elementType": "all",
-                "stylers": [
-                    {
-                        "visibility": "off"
-                    }
-                ]
-            },
-            {
-                "featureType": "transit",
-                "elementType": "all",
-                "stylers": [
-                    {
-                        "visibility": "off"
-                    }
-                ]
-            }
-        ]
+        styles: getMapAssets().mapStyles
     });
-
-    const markerHuman = {
-        url: "img/marker-human.png",
-        scaledSize: new google.maps.Size(35, 50)
-    };
-
-    const markerVeterinary = {
-        url: "img/marker-veterinary.png",
-        scaledSize: new google.maps.Size(35, 50)
-    };
-
-    const markerUser = {
-        url: "img/marker-user.png",
-        scaledSize: new google.maps.Size(35, 50)
-    };
 
     let bounds = new google.maps.LatLngBounds();
     let markers = [];
@@ -664,7 +724,7 @@ let loadRespondersPage = async function() {
             },
             map: map,
             // animation: google.maps.Animation.BOUNCE,
-            icon: (responders[i].type === "Human") ? markerHuman : markerVeterinary
+            icon: (responders[i].type === "Human") ? getMapAssets().markerHuman : getMapAssets().markerVeterinary
         });
 
         bounds.extend(markers[i].position);
@@ -678,8 +738,38 @@ let alertInterval;
 let gauge;
 let totalSeconds = 8;
 let remainingSeconds;
-let clockAudio;
 let loadAlertPage = function() {
+    app.dialog.preloader("Loading");
+
+    let alert = getOngoingAlert();
+
+    if(!alert) {
+        if(!clockAudio) {
+            clockAudio = (env === "prod") ? new Media('https://otaa.mxtrade.io/img/clock.mp3', loadAlertPageContent()) : new Audio("audio/clock.mp3", loadAlertPageContent());
+        } else {
+            loadAlertPageContent()
+        }
+    } else {
+        setTimeout(function() {
+            app.dialog.close();
+            view.router.navigate('/emergency/');
+        },500);
+    }
+};
+let getOngoingAlert = function() {
+    let selectedSubAccount = getSelectedSubAccount();
+    let alert = null;
+
+    for(let i = 0; i < selectedSubAccount.alerts.length; i++) {
+        if(selectedSubAccount.alerts[i].status === "Ongoing") {
+            alert = selectedSubAccount.alerts[i];
+            break;
+        }
+    }
+
+    return alert;
+};
+let loadAlertPageContent = function() {
     app.dialog.close();
 
     let content = ' <div class="width-100" style="position:absolute; top:56px; left:0">';
@@ -726,13 +816,45 @@ let loadAlertInterval = function() {
 
             if(remainingSeconds <= 0) {
                 clearInterval(alertInterval);
+                app.dialog.preloader("Loading");
+
+                let selectedSubAccount = getSelectedSubAccount();
+
+                let formData = new FormData();
+                formData.append('sub_account_id', selectedSubAccount.id);
+                formData.append('latitude', cooordinates.latitude);
+                formData.append('longitude', cooordinates.longitude);
+                formData.append('notes', $$("#alert-notes").val());
+
+                $$("#alert-notes").val("");
+
+                app.request({
+                    method: "POST",
+                    url: host + "/api/alert",
+                    data: formData,
+                    timeout: 30000,
+                    success: function(response, status, xhr) {
+                        response = JSON.parse(response);
+                        localStorage.setItem("authUser" + version, JSON.stringify(response.user));
+
+                        app.dialog.close();
+
+                        view.router.navigate('/emergency/');
+                    },
+                    error: function(xhr, status) {
+                        let error = JSON.parse(xhr.response);
+                        let errorMessage = (error.errors) ? error.errors : "Unable to connect to server.";
+
+                        app.dialog.close();
+                        app.dialog.alert(errorMessage, "Error");
+                    }
+                });
             }
         }, 1000);
     }
 };
 let exitAlertPage = function() {
     clearInterval(alertInterval);
-    if(env === "prod") { clockAudio.stop(); } else { clockAudio.load(); }
 };
 
 $$(document).on("click", ".gauge", function() {
@@ -758,39 +880,114 @@ $$(document).on("click", "#update-alert-countdown", function() {
     }
 });
 
-// Emergency Response
-let cooordinates;
-
-let getLocation = function() {
-    navigator.geolocation.getCurrentPosition(getLocationOnSuccess, getLocationOnError, {
-        maximumAge: 3000,
-        timeout: 5000,
-        enableHighAccuracy: true
+// Emergency
+let messages;
+let messagebar;
+let loadEmergencyPage = function() {
+    const map = new google.maps.Map(document.getElementById("map-emergency"), {
+        zoom: 17,
+        mapTypeControl: false,
+        streetViewControl: false,
+        center: {
+            lat: cooordinates.latitude,
+            lng: cooordinates.longitude
+        },
+        styles: getMapAssets().mapStyles
     });
-};
 
-let getLocationOnSuccess = function(position) {
-    if(gpsDialog.opened) {
-        gpsDialog.close();
+    let marker = new google.maps.Marker({
+        position: {
+            lat: cooordinates.latitude,
+            lng: cooordinates.longitude
+        },
+        map: map,
+        // animation: google.maps.Animation.BOUNCE,
+        icon: getMapAssets().markerUser
+    });
+
+    messages = app.messages.create({
+        el: '.messages',
+        firstMessageRule: function (message, previousMessage, nextMessage) {
+            if (message.isTitle) return false;
+            return !previousMessage || previousMessage.type !== message.type || previousMessage.name !== message.name;
+
+        },
+        lastMessageRule: function (message, previousMessage, nextMessage) {
+            if (message.isTitle) return false;
+            return !nextMessage || nextMessage.type !== message.type || nextMessage.name !== message.name;
+
+        },
+        tailMessageRule: function (message, previousMessage, nextMessage) {
+            if (message.isTitle) return false;
+            return !nextMessage || nextMessage.type !== message.type || nextMessage.name !== message.name;
+        }
+    });
+
+    messagebar = app.messagebar.create({
+        el: '.messagebar'
+    });
+
+    loadMessages();
+
+    setTimeout(function() {
+        $$(".messages").scrollTo(0, 100000);
+    }, 100);
+};
+let exitEmergencyPage = function() {
+    app.dialog.preloader("Loading");
+
+    setTimeout(function() {
+        view.router.back();
+        app.dialog.close();
+    }, 500);
+};
+let loadMessages = function() {
+    let alertMessages = getOngoingAlert().messages;
+
+    messages.clear();
+
+    for(let i = 0; i < alertMessages.length; i++) {
+        messages.messages.push({
+            type: (alertMessages[i].sub_account_id) ? "sent" : "received",
+            text: (alertMessages[i].type === "text") ? alertMessages[i].content : null,
+            imageSrc: (alertMessages[i].type === "photo") ? alertMessages[i].content : null,
+            name: (alertMessages[i].responder_id) ? alertMessages[i].name : null
+        });
     }
 
-    cooordinates = {
-        latitude: position.coords.latitude,
-        longitude: position.coords.longitude
+    messages.renderMessages();
+};
+let cameraSuccess = function(imageData) {
+    let message = {
+        imageSrc: 'data:image/jpeg;base64,' + imageData
     };
 
-    console.log("latitude: " + cooordinates.latitude);
-    console.log("longitude: " + cooordinates.longitude);
+    messages.addMessage(message);
 
-    setTimeout(function() {
-        getLocation();
-    }, 2000);
+    $$(".messages").scrollTo(0, 100000);
+};
+let cameraError = function(message) {
+    alert('Failed because: ' + message);
 };
 
-function getLocationOnError(error) {
-    gpsDialog.open();
+$$(document).on("click", "#capture-photo", function() {
+    navigator.camera.getPicture(cameraSuccess, cameraError, {
+        destinationType: Camera.DestinationType.DATA_URL,
+        correctOrientation: true
+    });
+});
 
-    setTimeout(function() {
-        getLocation();
-    }, 2000);
-}
+$$(document).on("click", "#send-message", function() {
+    let text = messagebar.getValue().replace(/\n/g, '<br>').trim();
+    if (!text.length) return;
+
+    messagebar.clear();
+    messagebar.focus();
+
+    messages.addMessage({
+        text: text,
+    });
+
+    $$(".messages").scrollTo(0, 100000);
+});
+
