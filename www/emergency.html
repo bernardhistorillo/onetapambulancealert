@@ -30,21 +30,30 @@
 			<div id="map-tab" class="page-content tab tab-active">
 				<div class="display-flex flex-direction-column" style="min-height:calc(100vh - 112px)">
 					<div>
-						<div class="block-title display-flex align-items-center" style="margin:0; padding:16px; background-color:#252525">
-							<div class="preloader" style="width:20px; height:20px"></div>
-							<div class="padding-horizontal">Alerting Responders</div>
-						</div>
-						<div class="list" style="margin-bottom:0">
+						<div class="list" id="selected-alert" style="margin-top:0; margin-bottom:0">
 							<ul>
-								<li class="item-link item-content">
-									<div class="item-media">
-										<img src="img/ambulance.png" width="32" />
-									</div>
-									<div class="item-inner">
-										<div class="item-title" id="sub-account-name">Leon D. Hernandez Memorial Hospital</div>
+								<li>
+									<a href="#" class="item-link item-content" id="view-alert-medical-records"></a>
+								</li>
+								<li>
+									<div class="display-flex fle padding-horizontal padding-bottom" id="alert-responder-action">
+										<button class="button button-fill button-round" id="respond">Accept and Respond</button>
 									</div>
 								</li>
 							</ul>
+						</div>
+						
+						<div class="block-title display-flex align-items-center" id="alerting-responders" style="margin:0; padding:16px; background-color:#252525">
+							<div class="preloader" style="width:20px; height:20px"></div>
+							<div class="padding-horizontal">Alerting Responders</div>
+						</div>
+						
+						<div class="block-title display-none" id="alert-responders-label" style="margin:0; padding:16px; background-color:#252525">
+							<div>Responders</div>
+						</div>
+						
+						<div class="list" id="alert-responders-container" style="margin-bottom:0">
+							<ul></ul>
 						</div>
 					</div>
 					
@@ -54,61 +63,7 @@
 			
 			<div id="messaging-tab" class="page-content tab" style="overflow-y:hidden">
 				<div>
-					<div class="messages" style="min-height:calc(100vh - 160px); max-height:calc(100vh - 160px); overflow-y:auto">
-						<div class="message message-sent">
-							<div class="message-content">
-								<div class="message-bubble">
-									<div class="message-text">Hello!</div>
-								</div>
-							</div>
-						</div>
-						
-						<div class="message message-sent">
-							<div class="message-content">
-								<div class="message-bubble">
-									<div class="message-text">I need help!</div>
-								</div>
-							</div>
-						</div>
-						
-						<div class="message message-received message-first message-tail">
-							<div class="message-avatar" style="background-image:url('img/ambulance.png')"></div>
-							<div class="message-content">
-								<div class="message-name">Animal Park Veterinary Clinic</div>
-								<div class="message-bubble">
-									<div class="message-text">May we know what happened?</div>
-								</div>
-							</div>
-						</div>
-						
-						<div class="message message-sent">
-							<div class="message-content">
-								<div class="message-bubble">
-									<div class="message-text">My cat is acting weird.</div>
-								</div>
-							</div>
-						</div>
-						
-						<div class="message message-sent">
-							<div class="message-content">
-								<div class="message-bubble">
-									<div class="message-image">
-										<img id="message-photo" src="https://cdn.framework7.io/placeholder/cats-200x260-4.jpg" style="width:200px" />
-									</div>
-								</div>
-							</div>
-						</div>
-						
-						<div class="message message-received message-first message-tail">
-							<div class="message-avatar" style="background-image:url('img/ambulance.png')"></div>
-							<div class="message-content">
-								<div class="message-name">Animal Park Veterinary Clinic</div>
-								<div class="message-bubble">
-									<div class="message-text">That's terrible. We're on the way!</div>
-								</div>
-							</div>
-						</div>
-					</div>
+					<div class="messages" style="min-height:calc(100vh - 160px); max-height:calc(100vh - 160px); overflow-y:auto"></div>
 				</div>
 				
 				<div class="toolbar messagebar">

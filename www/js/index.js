@@ -22,7 +22,6 @@
 
 let env = "local"; // prod or local
 let version = "1_0_1"; // prod or local
-
 let routes = [
     {
         path: '/',
@@ -71,7 +70,6 @@ let onDeviceReady = function() {
     document.addEventListener("backbutton", onBackKeyDown, false);
     onLoad();
 };
-
 let onBackKeyDown = function() {
     view.router.back();
 };
@@ -92,12 +90,50 @@ let onLoad = function() {
             loadHomePage();
         }
     }
+
+    $$("body").css("opacity", "initial");
 };
+
+// Onload
+document.addEventListener('deviceready', onDeviceReady, false);
+
+if(env === "local") {
+    window.onload = function(){
+        onLoad();
+    }
+}
+
+// On Initialize Pages
+$$(document).on("page:beforein", function(page) {
+    page = page.detail;
+
+    if(page.name === "home") {
+        loadHomePage();
+    } else if(page.name === "responders") {
+        loadRespondersPage();
+    } else if(page.name === "sub-accounts") {
+        loadSubAccountsPage();
+    } else if(page.name === "alert") {
+        loadAlertPage();
+    } else if(page.name === "emergency") {
+        loadEmergencyPage();
+    }
+});
+$$(document).on("page:beforeout", function(page) {
+    page = page.detail;
+
+    if(page.name === "alert") {
+        exitAlertPage();
+    } else if(page.name === "emergency") {
+        exitEmergencyPage();
+    } else if(page.name === "home") {
+        exitHomePage();
+    }
+});
 
 // GPS Location
 let cooordinates;
 let gpsDialog;
-
 let getLocation = function() {
     if(env === "prod") {
         navigator.geolocation.getCurrentPosition(getLocationOnSuccess, getLocationOnError, {
@@ -109,20 +145,19 @@ let getLocation = function() {
         getLocationOnSuccess();
     }
 };
-
 let getMapAssets = function() {
     return {
         markerHuman: {
             url: "img/marker-human.png",
-            scaledSize: new google.maps.Size(35, 50)
+            scaledSize: new google.maps.Size(44, 55)
         },
         markerVeterinary: {
             url: "img/marker-veterinary.png",
-            scaledSize: new google.maps.Size(35, 50)
+            scaledSize: new google.maps.Size(44, 55)
         },
         markerUser: {
             url: "img/marker-user.png",
-            scaledSize: new google.maps.Size(35, 50)
+            scaledSize: new google.maps.Size(44, 55)
         },
         mapStyles: [
             {
@@ -145,7 +180,6 @@ let getMapAssets = function() {
         ]
     }
 };
-
 let getLocationOnSuccess = function(position) {
     if(gpsDialog.opened) {
         gpsDialog.close();
@@ -157,17 +191,25 @@ let getLocationOnSuccess = function(position) {
             longitude: position.coords.longitude
         };
     } else {
-        cooordinates = {
-            latitude: 14.1141255,
-            longitude: 122.9548469
-        };
+        let authUser = getUser();
+
+        if(authUser.responder) {
+            cooordinates = {
+                latitude: 14.1144898,
+                longitude: 122.9567868
+            };
+        } else {
+            cooordinates = {
+                latitude: 14.1141255,
+                longitude: 122.9548469
+            };
+        }
     }
 
     setTimeout(function() {
         getLocation();
     }, 2000);
 };
-
 function getLocationOnError(error) {
     gpsDialog.open();
 
@@ -248,49 +290,33 @@ let loadHomePage = function() {
 
             $$("#medical-records-container ul").html(content);
         }
+
+        gpsDialog = app.dialog.create({
+            title: "Turn on GPS Location",
+            text: "Please turn on your GPS in your location settings."
+        });
+
+        getLocation();
+
+        if(authUser.responder) {
+            $$(".end-user-element").addClass("display-none");
+            $$(".responder-element").removeClass("display-none");
+
+            $$("#home-container").removeClass("text-align-center");
+
+            isLoadingAlerts = true;
+            loadAlerts();
+        } else {
+            $$(".end-user-element").removeClass("display-none");
+            $$(".responder-element").addClass("display-none");
+
+            $$("#home-container").addClass("text-align-center");
+        }
     }
-
-    gpsDialog = app.dialog.create({
-        title: "Turn on GPS Location",
-        text: "Please turn on your GPS in your location settings."
-    });
-
-    getLocation();
 };
-
-// Onload
-document.addEventListener('deviceready', onDeviceReady, false);
-
-if(env === "local") {
-    onLoad();
-}
-
-// On Initialize Pages
-$$(document).on("page:init", function(page) {
-    page = page.detail;
-
-    if(page.name === "home") {
-        loadHomePage();
-    } else if(page.name === "responders") {
-        loadRespondersPage();
-    } else if(page.name === "sub-accounts") {
-        loadSubAccountsPage();
-    } else if(page.name === "alert") {
-        loadAlertPage();
-    } else if(page.name === "emergency") {
-        loadEmergencyPage();
-    }
-});
-
-$$(document).on("page:beforeout", function(page) {
-    page = page.detail;
-
-    if(page.name === "alert") {
-        exitAlertPage();
-    } else if(page.name === "emergency") {
-        exitEmergencyPage();
-    }
-});
+let exitHomePage = function() {
+    isLoadingAlerts = false;
+};
 
 // terms & Conditions
 $$(document).on("click", "#agree-tnc", function() {
@@ -340,7 +366,6 @@ $$(document).on("submit", "#signup-form", function(e) {
         }
     });
 });
-
 $$(document).on("submit", "#login-form", function(e) {
     e.preventDefault();
 
@@ -372,7 +397,6 @@ $$(document).on("submit", "#login-form", function(e) {
         }
     });
 });
-
 $$(document).on("click", "#logout", function() {
     localStorage.removeItem("authUser" + version);
     localStorage.removeItem("selectedSubAccount" + version);
@@ -415,7 +439,6 @@ $$(document).on("submit", "#medical-record-form", function(e) {
         }
     });
 });
-
 $$(document).on("click", ".view-medical-record", function() {
     let medicalRecordId = $$(this).attr('data-medical-record-id');
     let title = $$(this).find('.item-title').html();
@@ -625,7 +648,6 @@ let loadSubAccountsPage = async function() {
         $$("#sub-accounts-container").html(content);
     }
 };
-
 $$(document).on("submit", "#add-account-form", function(e) {
     e.preventDefault();
 
@@ -661,7 +683,6 @@ $$(document).on("submit", "#add-account-form", function(e) {
         }
     });
 });
-
 $$(document).on("click", "#switch-account", function() {
     app.dialog.preloader("Switching");
 
@@ -856,11 +877,9 @@ let loadAlertInterval = function() {
 let exitAlertPage = function() {
     clearInterval(alertInterval);
 };
-
 $$(document).on("click", ".gauge", function() {
     $$("#update-alert-countdown").trigger("click");
 });
-
 $$(document).on("click", "#update-alert-countdown", function() {
     if(remainingSeconds > 0) {
         let action = $$(this).attr("data-action");
@@ -883,8 +902,14 @@ $$(document).on("click", "#update-alert-countdown", function() {
 // Emergency
 let messages;
 let messagebar;
+let isLoadingAlert = false;
+let emergencyMap;
+let emergencyMarkers = [];
+let emergencyMarkerIndeces = [];
 let loadEmergencyPage = function() {
-    const map = new google.maps.Map(document.getElementById("map-emergency"), {
+    let authUser = getUser();
+
+    emergencyMap = new google.maps.Map(document.getElementById("map-emergency"), {
         zoom: 17,
         mapTypeControl: false,
         streetViewControl: false,
@@ -893,16 +918,6 @@ let loadEmergencyPage = function() {
             lng: cooordinates.longitude
         },
         styles: getMapAssets().mapStyles
-    });
-
-    let marker = new google.maps.Marker({
-        position: {
-            lat: cooordinates.latitude,
-            lng: cooordinates.longitude
-        },
-        map: map,
-        // animation: google.maps.Animation.BOUNCE,
-        icon: getMapAssets().markerUser
     });
 
     messages = app.messages.create({
@@ -927,35 +942,196 @@ let loadEmergencyPage = function() {
         el: '.messagebar'
     });
 
-    loadMessages();
+    isLoadingAlert = true;
+    loadAlert();
 
     setTimeout(function() {
         $$(".messages").scrollTo(0, 100000);
     }, 100);
 };
+let loadAlert = function() {
+    let authUser = getUser();
+
+    let formData = new FormData();
+    formData.append('alert_id', (authUser.responder) ? loadedAlertId : getOngoingAlert().id);
+
+    app.request({
+        method: "POST",
+        url: host + "/api/loadAlert",
+        data: formData,
+        timeout: 30000,
+        success: function(response, status, xhr) {
+            response = JSON.parse(response);
+
+            formatMessages(response.alert.messages);
+            updateEmergencyMap(response.alert);
+
+            if(isLoadingAlert) {
+                setTimeout(function() {
+                    loadAlert();
+                }, 1000);
+            }
+        },
+        error: function(xhr, status) {
+            if(isLoadingAlert) {
+                setTimeout(function() {
+                    loadAlert();
+                }, 1000);
+            }
+        }
+    });
+};
 let exitEmergencyPage = function() {
     app.dialog.preloader("Loading");
+    isLoadingAlert = false;
 
     setTimeout(function() {
         view.router.back();
         app.dialog.close();
     }, 500);
 };
-let loadMessages = function() {
-    let alertMessages = getOngoingAlert().messages;
+let formatMessages = function(_messages) {
+    let authUser = getUser();
+    let updatedMessages = [];
 
-    messages.clear();
+    for(let i = 0; i < _messages.length; i++) {
+        let type;
+        if(!authUser.responder) {
+            type = (_messages[i].sub_account_id) ? "sent" : "received";
+        } else {
+            type = (_messages[i].responder_id) ? "sent" : "received";
+        }
 
-    for(let i = 0; i < alertMessages.length; i++) {
-        messages.messages.push({
-            type: (alertMessages[i].sub_account_id) ? "sent" : "received",
-            text: (alertMessages[i].type === "text") ? alertMessages[i].content : null,
-            imageSrc: (alertMessages[i].type === "photo") ? alertMessages[i].content : null,
-            name: (alertMessages[i].responder_id) ? alertMessages[i].name : null
+        updatedMessages.push({
+            message_id: _messages[i].id,
+            type: type,
+            text: (_messages[i].type === "text") ? _messages[i].content : null,
+            imageSrc: (_messages[i].type === "photo") ? _messages[i].content : null,
+            name: (_messages[i].responder_id) ? _messages[i].name : null
         });
     }
 
+    // for(let i = 0; i < messages.messages.length; i++) {
+    //     if(!messages.messages[i].message_id) {
+    //         updatedMessages.push(messages.messages[i]);
+    //     }
+    // }
+
+    messages.clear();
+    messages.messages = updatedMessages;
     messages.renderMessages();
+    messages.layout();
+
+    $$(".messages").scrollTo(0, 100000);
+};
+let updateEmergencyMap = function(alert) {
+    let alertResponders = alert.alertResponders;
+    let authUser = getUser();
+
+    if(authUser.responder) {
+        let alertDetailsElement = $$(".view-emergency[data-alert-id='" + loadedAlertId + "']").html();
+        $$("#view-alert-medical-records").html(alertDetailsElement);
+        $$("#view-alert-medical-records .ripple-wave").remove();
+
+        $$("#selected-alert").removeClass("display-none");
+
+        for(let i = 0; i < alertResponders.length; i++) {
+            let content = '';
+
+            if(alertResponders[i].responder_id === authUser.responder.id && alertResponders[i].status === "Responding") {
+                content += '<div class="width-100" style="margin-right:10px"><button class="button button-outline button-round" id="respond">Stop Response</button></div>';
+                content += '<div class="width-100"><button class="button button-fill button-round" id="respond">Set as Done</button></div>';
+            } else {
+                content += '<button class="button button-fill button-round" id="respond">Accept and Respond</button>';
+            }
+
+            $$("#alert-responder-action").html(content);
+        }
+    } else {
+        $$("#selected-alert").addClass("display-none");
+    }
+
+    if(alertResponders.length > 0) {
+        $$("#alerting-responders").addClass("display-none");
+        $$("#alert-responders-label").removeClass("display-none");
+
+        let content = '';
+
+        for(let i = 0; i < alertResponders.length; i++) {
+            content += '    <li class="item-link item-content">';
+            content += '        <div class="item-media">';
+            content += '            <img src="img/ambulance.png" width="32"/>';
+            content += '        </div>';
+            content += '        <div class="item-inner">';
+            content += '            <div class="item-title" id="sub-account-name">' + alertResponders[i].name + '</div>';
+            content += '        </div>';
+            content += '    </li>';
+        }
+
+        $$("#alert-responders-container ul").html(content);
+        $$("#alert-responders-container").removeClass("display-none");
+    } else {
+        if(authUser.responder) {
+            $$("#alerting-responders").addClass("display-none");
+        } else {
+            $$("#alerting-responders").removeClass("display-none");
+        }
+
+        $$("#alert-responders-label").addClass("display-none");
+        $$("#alert-responders-container").addClass("display-none");
+    }
+
+    let newEmergencyMarkerIndeces = [];
+    for(let i = 0; i < alertResponders.length; i++) {
+        let index = "responder" + alertResponders[i].responder_id;
+
+        newEmergencyMarkerIndeces.push(index);
+
+        if(emergencyMarkerIndeces.includes(index)) {
+            emergencyMarkers[index].setPosition({
+                lat: parseFloat(alertResponders[i].latitude),
+                lng: parseFloat(alertResponders[i].longitude)
+            });
+
+            emergencyMarkerIndeces.splice(index, 1);
+        } else {
+            emergencyMarkers[index] = new google.maps.Marker({
+                position: {
+                    lat: parseFloat(alertResponders[i].latitude),
+                    lng: parseFloat(alertResponders[i].longitude)
+                },
+                map: emergencyMap,
+                icon: (alertResponders[i].type === "Human") ? getMapAssets().markerHuman : getMapAssets().markerVeterinary
+            });
+        }
+    }
+
+    let index = "subAccount" + loadedAlertId;
+    if(emergencyMarkerIndeces.includes(index)) {
+        emergencyMarkers[index].setPosition({
+            lat: parseFloat(alert.latitude),
+            lng: parseFloat(alert.longitude)
+        });
+
+        emergencyMarkerIndeces.splice(index, 1);
+    } else {
+        emergencyMarkers[index] = new google.maps.Marker({
+            position: {
+                lat: parseFloat(alert.latitude),
+                lng: parseFloat(alert.longitude)
+            },
+            map: emergencyMap,
+            icon: getMapAssets().markerUser
+        });
+
+        newEmergencyMarkerIndeces.push(index);
+    }
+
+    for(let i = 0; i < emergencyMarkerIndeces.length; i++) {
+        emergencyMarkers[emergencyMarkerIndeces[i]].setMap(null);
+    }
+
+    emergencyMarkerIndeces = newEmergencyMarkerIndeces;
 };
 let cameraSuccess = function(imageData) {
     let message = {
@@ -969,14 +1145,12 @@ let cameraSuccess = function(imageData) {
 let cameraError = function(message) {
     alert('Failed because: ' + message);
 };
-
 $$(document).on("click", "#capture-photo", function() {
     navigator.camera.getPicture(cameraSuccess, cameraError, {
         destinationType: Camera.DestinationType.DATA_URL,
         correctOrientation: true
     });
 });
-
 $$(document).on("click", "#send-message", function() {
     let text = messagebar.getValue().replace(/\n/g, '<br>').trim();
     if (!text.length) return;
@@ -985,9 +1159,143 @@ $$(document).on("click", "#send-message", function() {
     messagebar.focus();
 
     messages.addMessage({
+        type: "sent",
         text: text,
     });
 
     $$(".messages").scrollTo(0, 100000);
+
+    let authUser = getUser();
+
+    let formData = new FormData();
+    formData.append('type', "text");
+    formData.append('message', text);
+    if(authUser.responder) {
+        formData.append('responder_id', authUser.responder.id);
+        formData.append('alert_id', loadedAlertId);
+    } else {
+        formData.append('sub_account_id', getSelectedSubAccount().id);
+        formData.append('alert_id', getOngoingAlert().id);
+    }
+
+    let sendMessage = function(formData) {
+        app.request({
+            method: "POST",
+            url: host + "/api/sendMessage",
+            data: formData,
+            timeout: 30000,
+            error: function(xhr, status) {
+                sendMessage(formData);
+            }
+        });
+    };
+
+    sendMessage(formData);
 });
 
+// Responder Home Page
+let isLoadingAlerts = false;
+let loadAlerts = function() {
+    let authUser = getUser();
+
+    let formData = new FormData();
+    formData.append('responder_id', authUser.responder.id);
+
+    app.request({
+        method: "POST",
+        url: host + "/api/loadAlerts",
+        data: formData,
+        timeout: 30000,
+        success: function(response, status, xhr) {
+            response = JSON.parse(response);
+            let alerts = response.alerts;
+            let content = '';
+
+            for(let i = 0; i < alerts.length; i++) {
+                if(alerts[i].status === "Ongoing") {
+                    content += '    <li>';
+                    content += '        <a href="#" class="item-link item-content view-emergency" data-alert-id="' + alerts[i].id + '">';
+                    content += '            <div class="item-media">';
+                    content += '                <i class="f7-icons">' + ((alerts[i].type === "Human") ? 'person_alt' : 'paw') + '</i>';
+                    content += '            </div>';
+                    content += '            <div class="item-inner">';
+                    content += '                <div class="item-title">';
+                    content += '                    <div class="item-header">Name</div>';
+                    content += '                    <div>' + alerts[i].name + '</div>';
+                    content += '                    <div class="item-footer">Account: ' + alerts[i].firstname + ' ' + alerts[i].middlename + ' ' + alerts[i].lastname + '</div>';
+                    content += '                </div>';
+                    content += '                <div class="item-after">View</div>';
+                    content += '            </div>';
+                    content += '        </a>';
+                    content += '    </li>';
+                }
+            }
+
+            if(content !== '') {
+                $$("#no-active-alerts").addClass("display-none");
+                $$("#active-alerts-container").removeClass("display-none");
+
+                $$("#active-alerts-container ul").html(content);
+            } else {
+                $$("#no-active-alerts").removeClass("display-none");
+                $$("#active-alerts-container").addClass("display-none");
+            }
+
+            if(isLoadingAlerts) {
+                setTimeout(function() {
+                    loadAlerts();
+                }, 1000);
+            }
+        },
+        error: function(xhr, status) {
+            if(isLoadingAlerts) {
+                setTimeout(function() {
+                    loadAlerts();
+                }, 1000);
+            }
+        }
+    });
+};
+let loadedAlertId;
+$$(document).on("click", ".view-emergency", function() {
+    loadedAlertId = $$(this).attr("data-alert-id");
+    view.router.navigate('/emergency/');
+});
+$$(document).on("click", "#respond", function() {
+    let authUser = getUser();
+
+    let formData = new FormData();
+    formData.append('alert_id', loadedAlertId);
+    formData.append('responder_id', authUser.responder.id);
+    formData.append('latitude', cooordinates.latitude);
+    formData.append('longitude', cooordinates.longitude);
+
+    app.request({
+        method: "POST",
+        url: host + "/api/respond",
+        data: formData,
+        timeout: 30000,
+        success: function(response, status, xhr) {
+            response = JSON.parse(response);
+            let content = '';
+
+            if(response.alertResponder.status === "Responding") {
+                content += '<button class="col button button-outline button-round" id="respond">Stop Response</button>';
+                content += '<button class="col button button-fill button-round" id="respond">Set as Completed</button>';
+            } else {
+                content += '<button class="col button button-fill button-round" id="respond">Accept and Respond</button>';
+            }
+
+            $$("#alert-responder-action").html(content);
+
+            app.dialog.close();
+        },
+        error: function(xhr, status) {
+            let error = JSON.parse(xhr.response);
+            let errorMessage = (error.errors) ? error.errors : "Unable to connect to server.";
+
+            app.dialog.close();
+            app.dialog.alert(errorMessage, "Error");
+        }
+    });
+});

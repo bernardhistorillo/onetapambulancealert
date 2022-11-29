@@ -46,7 +46,7 @@ class User extends Authenticatable
         $name = '';
 
         if($this->firstname) {
-            $name = $name . ' ' . $this->firstname;
+            $name = $this->firstname;
         }
 
         if($this->middlename) {
@@ -77,22 +77,23 @@ class User extends Authenticatable
             ->get();
     }
 
+    public function responder() {
+        return $this->belongsTo(Responder::class)
+            ->first();
+    }
+
     public function data() {
         $this->formattedBirthdate = Carbon::parse($this->birthdate)->format('F n, Y');
         $subAccounts = $this->subAccounts();
+        $responder = $this->responder();
 
         foreach($subAccounts as $subAccount) {
             $subAccount['medicalRecords'] = $subAccount->medicalRecords();
             $subAccount['alerts'] = $subAccount->alerts();
-
-            foreach($subAccount['alerts'] as $alert) {
-                if($alert['status'] == 'Ongoing') {
-                    $alert['messages'] = $alert->messages();
-                }
-            }
         }
 
         $this->subAccounts = $subAccounts;
+        $this->responder = $responder;
 
         return $this;
     }

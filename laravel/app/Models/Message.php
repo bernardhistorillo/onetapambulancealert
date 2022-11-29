@@ -13,4 +13,9 @@ class Message extends Model
         return $this->belongsTo(Responder::class)
             ->first();
     }
+
+    public function alert() {
+        return $this->belongsTo(Alert::class)
+            ->first();
+    }
 }
