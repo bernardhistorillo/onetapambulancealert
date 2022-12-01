@@ -19,7 +19,7 @@ class Alert extends Model
             ->leftJoin('responders', 'responder_id', 'responders.id')
             ->leftJoin('sub_accounts', 'sub_account_id', 'sub_accounts.id')
             ->select('messages.*', 'responders.name as responder_name', 'sub_accounts.name as sub_account_name')
-            ->orderBy('messages.id', 'asc')
+            ->orderBy('messages.id')
             ->get();
     }
 

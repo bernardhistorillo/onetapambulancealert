@@ -8,4 +8,9 @@ use Illuminate\Database\Eloquent\Model;
 class AlertResponder extends Model
 {
     use HasFactory;
+
+    public function alert() {
+        return $this->belongsTo(Alert::class)
+            ->first();
+    }
 }

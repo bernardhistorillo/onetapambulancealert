@@ -34,6 +34,7 @@ Route::get('/try', function() {
 Route::post('/signup', [AuthenticationController::class, 'signup']);
 Route::post('/login', [AuthenticationController::class, 'mobileLogin']);
 
+Route::post('/getUser', [UserController::class, 'getUser']);
 Route::post('/updateUser', [UserController::class, 'updateUser']);
 
 Route::post('/addMedicalRecord', [MedicalRecordController::class, 'addMedicalRecord']);
@@ -50,3 +51,5 @@ Route::post('/loadAlert', [AlertController::class, 'loadAlert']);
 
 Route::post('/loadAlerts', [AlertController::class, 'loadAlerts']);
 Route::post('/respond', [AlertController::class, 'respond']);
+Route::post('/stopResponse', [AlertController::class, 'stopResponse']);
+Route::post('/completeResponse', [AlertController::class, 'completeResponse']);

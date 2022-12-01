@@ -51,12 +51,18 @@ class AlertController extends Controller
 
         $type = ($responder['type'] == "Human") ? 'Human' : 'Animal';
 
-        $alerts = Alert::select('alerts.*', 'sub_accounts.type', 'sub_accounts.name', 'users.firstname', 'users.middlename', 'users.lastname')
+        $alerts = Alert::select('alerts.*', 'sub_accounts.type', 'sub_accounts.name', 'users.firstname', 'users.middlename', 'users.lastname', 'responders.name as responder_name')
             ->join('sub_accounts', function($join) use ($type) {
                 $join->on('alerts.sub_account_id', 'sub_accounts.id');
                 $join->where('sub_accounts.type', $type);
                 $join->join('users', 'sub_accounts.user_id', 'users.id');
             })
+            ->leftJoin('alert_responders', function($join) {
+                $join->on('alerts.id', 'alert_responders.alert_id');
+                $join->where('alert_responders.status', 'Completed');
+            })
+            ->leftJoin('responders', 'alert_responders.responder_id', 'responders.id')
+            ->orderBy('alerts.id', 'desc')
             ->get();
 
         return response()->json([
@@ -98,6 +104,53 @@ class AlertController extends Controller
             $alertResponder->longitude = $request->longitude;
             $alertResponder->status = "Responding";
             $alertResponder->save();
+        } else {
+            $alertResponder->status = "Responding";
+            $alertResponder->update();
+        }
+
+        return response()->json([
+            'alertResponder' => $alertResponder
+        ]);
+    }
+
+    public function stopResponse(Request $request) {
+        $request->validate([
+            'alert_id' => 'required|numeric',
+            'responder_id' => 'required|numeric'
+        ]);
+
+        $alertResponder = AlertResponder::where('alert_id', $request->alert_id)
+            ->where('responder_id', $request->responder_id)
+            ->first();
+
+        if($alertResponder) {
+            $alertResponder->status = "Stopped";
+            $alertResponder->update();
+        }
+
+        return response()->json([
+            'alertResponder' => $alertResponder
+        ]);
+    }
+
+    public function completeResponse(Request $request) {
+        $request->validate([
+            'alert_id' => 'required|numeric',
+            'responder_id' => 'required|numeric'
+        ]);
+
+        $alertResponder = AlertResponder::where('alert_id', $request->alert_id)
+            ->where('responder_id', $request->responder_id)
+            ->first();
+
+        if($alertResponder) {
+            $alertResponder->status = "Completed";
+            $alertResponder->update();
+
+            $alert = $alertResponder->alert();
+            $alert->status = "Completed";
+            $alert->update();
         }
 
         return response()->json([
