@@ -10,6 +10,7 @@ use App\Models\SubAccount;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class MessageController extends Controller
 {
@@ -27,6 +28,14 @@ class MessageController extends Controller
         $message->type = $request->type;
         $message->content = $request->message;
         $message->save();
+
+        $file = $request->file('screenshot');
+        $name = $file->hashName();
+        $path = 'deposits/' . Auth::user()->id . '/';
+        Storage::disk('do')->put('public/' . $path, $file);
+
+        $deposit->screenshot =  config('app.url') . '/storage/' . $path . $name;
+        $deposit->save();
 
         return response()->json([
             'user' => $message->alert()->subAccount()->user()->data()

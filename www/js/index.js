@@ -227,6 +227,7 @@ function getLocationOnError(error) {
 // Home Page
 let clockAudio;
 let notificationAudio;
+let hasDomInteracted = false;
 let getUser = function() {
     return (localStorage.getItem("authUser" + version)) ? JSON.parse(localStorage.getItem("authUser" + version)) : null;
 }
@@ -249,7 +250,7 @@ let getSelectedSubAccount = function() {
 
     return selectedSubAccount;
 }
-let loadHomePage = function() {
+let loadHomePage = async function() {
     clockAudio = (env === "prod") ? new Media('https://otaa.mxtrade.io/img/clock.mp3') : new Audio("audio/clock.mp3");
     notificationAudio = (env === "prod") ? new Media('https://otaa.mxtrade.io/img/notification.wav') : new Audio("audio/notification.wav");
 
@@ -314,9 +315,23 @@ let loadHomePage = function() {
 
             $$("#home-page-tab-highlight").css("width", "50%");
 
-            isLoadingAlerts = true;
-            loadAlerts();
-            loadNotificationInterval();
+            if(!hasDomInteracted) {
+                await app.dialog.alert("“Next to creating a life, the finest thing a man can do is save one.” -Abraham Lincoln", "", function() {
+                    hasDomInteracted = true;
+
+                    // Start: Should be the same below
+                    isLoadingAlerts = true;
+                    loadAlerts();
+                    loadNotificationInterval();
+                    // End: Should be the same below
+                });
+            } else {
+                // Start: Should be the same above
+                isLoadingAlerts = true;
+                loadAlerts();
+                loadNotificationInterval();
+                // End: Should be the same above
+            }
         } else {
             $$(".end-user-element").removeClass("display-none");
             $$(".responder-element").addClass("display-none");
@@ -414,6 +429,7 @@ $$(document).on("submit", "#login-form", function(e) {
 $$(document).on("click", "#logout", function() {
     localStorage.removeItem("authUser" + version);
     localStorage.removeItem("selectedSubAccount" + version);
+    localStorage.removeItem("hasAgreedToAgreement" + version);
 
     view.router.navigate('/authentication/');
 });
@@ -904,6 +920,7 @@ let directionsRenderer;
 let emergencyMarkers = [];
 let emergencyMarkerIndeces = [];
 let directionsIsLoaded = false;
+let isEmergencyPageFirstLoad = true;
 let loadEmergencyPage = function() {
     try {
         emergencyMap = new google.maps.Map(document.getElementById("map-emergency"), {
@@ -985,6 +1002,8 @@ let loadAlert = function() {
                 setTimeout(function() {
                     loadAlert();
                 }, 1000);
+            } else {
+                isEmergencyPageFirstLoad = true;
             }
         },
         error: function(xhr, status) {
@@ -992,6 +1011,8 @@ let loadAlert = function() {
                 setTimeout(function() {
                     loadAlert();
                 }, 1000);
+            } else {
+                isEmergencyPageFirstLoad = true;
             }
         }
     });
@@ -1113,6 +1134,8 @@ let updateEmergencyMap = function(alert) {
     }
 
     let newEmergencyMarkerIndeces = [];
+    let bounds = new google.maps.LatLngBounds();
+
     for(let i = 0; i < alertResponders.length; i++) {
         let index = "responder" + alertResponders[i].responder_id;
 
@@ -1136,6 +1159,7 @@ let updateEmergencyMap = function(alert) {
             });
         }
 
+        bounds.extend(emergencyMarkers[index].position);
         emergencyMarkers[index].setMap(emergencyMap);
 
         if(authUser.responder) {
@@ -1160,7 +1184,32 @@ let updateEmergencyMap = function(alert) {
         }
     }
 
-    let index = "subAccount" + loadedAlertId;
+    let index = "responder" + authUser.responder.id;
+    if(authUser.responder && !newEmergencyMarkerIndeces.includes(index)) {
+        newEmergencyMarkerIndeces.push(index);
+
+        if(emergencyMarkerIndeces.includes(index)) {
+            emergencyMarkers[index].setPosition({
+                lat: cooordinates.latitude,
+                lng: cooordinates.longitude
+            });
+
+            emergencyMarkerIndeces.splice(index, 1);
+        } else {
+            emergencyMarkers[index] = new google.maps.Marker({
+                position: {
+                    lat: cooordinates.latitude,
+                    lng: cooordinates.longitude
+                },
+                map: emergencyMap,
+                icon: (authUser.responder.type === "Human") ? getMapAssets().markerHuman : getMapAssets().markerVeterinary
+            });
+        }
+        bounds.extend(emergencyMarkers[index].position);
+        emergencyMarkers[index].setMap(emergencyMap);
+    }
+
+    index = "subAccount" + loadedAlertId;
     newEmergencyMarkerIndeces.push(index);
 
     if(emergencyMarkerIndeces.includes(index)) {
@@ -1180,7 +1229,14 @@ let updateEmergencyMap = function(alert) {
             icon: getMapAssets().markerUser
         });
     }
+    bounds.extend(emergencyMarkers[index].position);
     emergencyMarkers[index].setMap(emergencyMap);
+
+    if(isEmergencyPageFirstLoad) {
+        console.log("sdsd");
+        emergencyMap.fitBounds(bounds);
+        isEmergencyPageFirstLoad = false;
+    }
 
     for(let i = 0; i < emergencyMarkerIndeces.length; i++) {
         emergencyMarkers[emergencyMarkerIndeces[i]].setMap(null);
@@ -1197,6 +1253,33 @@ let cameraSuccess = function(imageData) {
 
     $$("#map-tab").scrollTo(0, 0);
     $$(".messages").scrollTo(0, 100000);
+
+    let authUser = getUser();
+
+    let formData = new FormData();
+    formData.append('type', "text");
+    formData.append('photo', imageData);
+    if(authUser.responder) {
+        formData.append('responder_id', authUser.responder.id);
+        formData.append('alert_id', loadedAlertId);
+    } else {
+        formData.append('sub_account_id', getSelectedSubAccount().id);
+        formData.append('alert_id', getOngoingAlert().id);
+    }
+
+    let sendMessage = function(formData) {
+        app.request({
+            method: "POST",
+            url: host + "/api/sendMessage",
+            data: formData,
+            timeout: 30000,
+            error: function(xhr, status) {
+                sendMessage(formData);
+            }
+        });
+    };
+
+    sendMessage(formData);
 };
 let cameraError = function(message) {
     alert('Failed because: ' + message);
@@ -1253,8 +1336,7 @@ $$(document).on("click", "#send-message", function() {
 // Responder Home Page
 let isLoadingAlerts = false;
 let notificationInterval;
-let notificationIntervalSeconds = 0;
-let hasActiveAlerts = false;
+let isRinging = false;
 let loadAlerts = function() {
     let authUser = getUser();
 
@@ -1271,9 +1353,16 @@ let loadAlerts = function() {
             let alerts = response.alerts;
             let content = '';
 
+            // localStorage.removeItem("mutedAlerts" + version);
+            let mutedAlerts = (localStorage.getItem("mutedAlerts" + version)) ? JSON.parse(localStorage.getItem("mutedAlerts" + version)) : [];
+            let _isRinging = false;
+
             for(let i = 0; i < alerts.length; i++) {
                 if(alerts[i].status === "Ongoing") {
-                    hasActiveAlerts = true;
+                    if(!_isRinging) {
+                        _isRinging = !mutedAlerts.includes(alerts[i].id);
+                        isRinging = _isRinging;
+                    }
 
                     content += '    <li>';
                     content += '        <div class="item-content">';
@@ -1287,10 +1376,11 @@ let loadAlerts = function() {
                     content += '                    <div class="item-footer">Account: ' + alerts[i].firstname + ' ' + alerts[i].middlename + ' ' + alerts[i].lastname + '</div>';
                     content += '                </div>';
                     content += '                <div class="item-after">';
-                    content += '                    <label class="toggle toggle-init">';
-                    content += '                        <input type="checkbox" name="unmute-alert" ' + alerts[i].id + '>';
-                    content += '                        <span class="toggle-icon"></span>';
-                    content += '                    </label>';
+                    content += '                    <div>';
+                    content += '                        <input type="checkbox" name="mute-alert" class="display-none" data-alert-id="' + alerts[i].id + '"' + ((!mutedAlerts.includes(alerts[i].id)) ? 'checked' : '') + '>';
+                    content += '                        <i class="f7-icons mute-alert unmuted ' + ((mutedAlerts.includes(alerts[i].id)) ? 'display-none' : '') + '">speaker_3_fill</i>';
+                    content += '                        <i class="f7-icons mute-alert muted ' + ((!mutedAlerts.includes(alerts[i].id)) ? 'display-none' : '') + '">speaker_slash_fill</i>';
+                    content += '                    </div>';
                     content += '                </div>';
                     content += '            </div>';
                     content += '        </div>';
@@ -1405,7 +1495,7 @@ let loadHistoryPage = function() {
             for(let i = 0; i < alerts.length; i++) {
                 if(alerts[i].status === "Completed") {
                     content += '    <li>';
-                    content += '        <a href="#" class="item-link item-content view-history-alert" data-alert-id="' + alerts[i].id + '">';
+                    content += '        <div class="item-content view-history-alert" data-alert-id="' + alerts[i].id + '">';
                     content += '            <div class="item-media">';
                     content += '                <i class="f7-icons">' + ((alerts[i].type === "Human") ? 'person_alt' : 'paw') + '</i>';
                     content += '            </div>';
@@ -1415,9 +1505,10 @@ let loadHistoryPage = function() {
                     content += '                    <div class="alert-sub-account-name">' + alerts[i].name + '</div>';
                     content += '                    <div class="item-footer">Account: ' + alerts[i].firstname + ' ' + alerts[i].middlename + ' ' + alerts[i].lastname + '</div>';
                     content += '                    <div class="item-footer">Responder: ' + alerts[i].responder_name + '</div>';
+                    content += '                    <div class="item-footer">Duration: ' + alerts[i].duration + '</div>';
                     content += '                </div>';
                     content += '            </div>';
-                    content += '        </a>';
+                    content += '        </div>';
                     content += '    </li>';
                 }
             }
@@ -1440,12 +1531,31 @@ let loadNotificationInterval = function() {
     $$("body").trigger("click");
 
     notificationInterval = setInterval(function() {
-        if(hasActiveAlerts) {
+        if(isRinging) {
             if(env === "prod") { notificationAudio.stop(); } else { notificationAudio.load(); }
             notificationAudio.play();
 
-            $$("#responder-ambulance-light").css("opacity", (notificationIntervalSeconds % 2 === 0) ? 1 : 0);
-            notificationIntervalSeconds++;
+            $$("#responder-ambulance-light").css("opacity", 1);
+
+            setTimeout(function() {
+                $$("#responder-ambulance-light").css("opacity", 0);
+            }, 400);
+
+            setTimeout(function() {
+                $$("#responder-ambulance-light").css("opacity", 1);
+            }, 800);
+
+            setTimeout(function() {
+                $$("#responder-ambulance-light").css("opacity", 0);
+            }, 1200);
+
+            setTimeout(function() {
+                $$("#responder-ambulance-light").css("opacity", 1);
+            }, 1600);
+
+            setTimeout(function() {
+                $$("#responder-ambulance-light").css("opacity", 0);
+            }, 2000);
         }
     }, 2000);
 };
@@ -1565,4 +1675,30 @@ $$(document).on("click", "#complete-response", function() {
             }
         ]
     }).open();
+});
+$$(document).on("click", ".mute-alert", function() {
+    $$(this).closest("div").find("input[name='mute-alert']").trigger("change");
+});
+$$(document).on("change", "input[name='mute-alert']", function() {
+    $$(this).prop("checked", !$$(this).prop("checked"));
+
+    let mutedAlerts = (localStorage.getItem("mutedAlerts" + version)) ? JSON.parse(localStorage.getItem("mutedAlerts" + version)) : [];
+    let alertId = parseInt($$(this).attr("data-alert-id"));
+
+    if($$(this).prop("checked")) {
+        let index = mutedAlerts.indexOf(alertId);
+        mutedAlerts.splice(index, 1);
+
+        $$(this).closest("div").find(".unmuted").removeClass("display-none");
+        $$(this).closest("div").find(".muted").addClass("display-none");
+    } else {
+        if(!mutedAlerts.includes(alertId)) {
+            mutedAlerts.push(alertId);
+        }
+
+        $$(this).closest("div").find(".unmuted").addClass("display-none");
+        $$(this).closest("div").find(".muted").removeClass("display-none");
+    }
+
+    localStorage.setItem("mutedAlerts" + version, JSON.stringify(mutedAlerts))
 });

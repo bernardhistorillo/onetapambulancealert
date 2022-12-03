@@ -51,7 +51,7 @@ class AlertController extends Controller
 
         $type = ($responder['type'] == "Human") ? 'Human' : 'Animal';
 
-        $alerts = Alert::select('alerts.*', 'sub_accounts.type', 'sub_accounts.name', 'users.firstname', 'users.middlename', 'users.lastname', 'responders.name as responder_name')
+        $alerts = Alert::select('alerts.*', 'sub_accounts.type', 'sub_accounts.name', 'users.firstname', 'users.middlename', 'users.lastname', 'responders.name as responder_name', 'alert_responders.updated_at as alert_responder_updated_at')
             ->join('sub_accounts', function($join) use ($type) {
                 $join->on('alerts.sub_account_id', 'sub_accounts.id');
                 $join->where('sub_accounts.type', $type);
@@ -64,6 +64,12 @@ class AlertController extends Controller
             ->leftJoin('responders', 'alert_responders.responder_id', 'responders.id')
             ->orderBy('alerts.id', 'desc')
             ->get();
+
+        foreach($alerts as $alert) {
+            if($alert['alert_responder_updated_at']) {
+                $alert['duration'] = Carbon::parse($alert['created_at'])->longAbsoluteDiffForHumans(Carbon::parse($alert['alert_responder_updated_at']), 2);
+            }
+        }
 
         return response()->json([
             'alerts' => $alerts
