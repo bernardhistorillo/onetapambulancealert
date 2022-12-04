@@ -26,16 +26,19 @@ class MessageController extends Controller
         $message->sub_account_id = ($request->sub_account_id) ?? 0;
         $message->responder_id = ($request->responder_id) ?? 0;
         $message->type = $request->type;
-        $message->content = $request->message;
+
+        if($request->type == 'photo') {
+            $file = $request->file('message');
+            $name = $file->hashName();
+            $path = config('filesystems.disks.do.folder') . '/';
+            Storage::disk('do')->put($path, $file, "public");
+
+            $message->content = config('filesystems.disks.do.cdn_endpoint') . $path . $name;
+        } else {
+            $message->content = $request->message;
+        }
+
         $message->save();
-
-        $file = $request->file('screenshot');
-        $name = $file->hashName();
-        $path = 'deposits/' . Auth::user()->id . '/';
-        Storage::disk('do')->put('public/' . $path, $file);
-
-        $deposit->screenshot =  config('app.url') . '/storage/' . $path . $name;
-        $deposit->save();
 
         return response()->json([
             'user' => $message->alert()->subAccount()->user()->data()

@@ -23,12 +23,7 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/try', function() {
-    return Alert::select('alerts.*', 'sub_accounts.type', 'sub_accounts.name', 'users.firstname', 'users.middlename', 'users.lastname')
-        ->join('sub_accounts', function($join) {
-            $join->on('alerts.sub_account_id', 'sub_accounts.id');
-            $join->join('users', 'sub_accounts.user_id', 'users.id');
-        })
-        ->get();
+    return config('filesystems.disks.do.endpoint');
 });
 
 Route::post('/signup', [AuthenticationController::class, 'signup']);

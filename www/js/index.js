@@ -155,15 +155,15 @@ let getMapAssets = function() {
     return {
         markerHuman: {
             url: "img/marker-human.png",
-            scaledSize: new google.maps.Size(44, 55)
+            scaledSize: new google.maps.Size(44, 62)
         },
         markerVeterinary: {
             url: "img/marker-veterinary.png",
-            scaledSize: new google.maps.Size(44, 55)
+            scaledSize: new google.maps.Size(44, 62)
         },
         markerUser: {
             url: "img/marker-user.png",
-            scaledSize: new google.maps.Size(44, 55)
+            scaledSize: new google.maps.Size(44, 62)
         },
         mapStyles: [
             {
@@ -1135,6 +1135,7 @@ let updateEmergencyMap = function(alert) {
 
     let newEmergencyMarkerIndeces = [];
     let bounds = new google.maps.LatLngBounds();
+    let boundsLength = 0;
 
     for(let i = 0; i < alertResponders.length; i++) {
         let index = "responder" + alertResponders[i].responder_id;
@@ -1160,6 +1161,7 @@ let updateEmergencyMap = function(alert) {
         }
 
         bounds.extend(emergencyMarkers[index].position);
+        boundsLength++;
         emergencyMarkers[index].setMap(emergencyMap);
 
         if(authUser.responder) {
@@ -1184,32 +1186,35 @@ let updateEmergencyMap = function(alert) {
         }
     }
 
-    let index = "responder" + authUser.responder.id;
-    if(authUser.responder && !newEmergencyMarkerIndeces.includes(index)) {
-        newEmergencyMarkerIndeces.push(index);
+    if(authUser.responder) {
+        let index = "responder" + authUser.responder.id;
+        if(!newEmergencyMarkerIndeces.includes(index)) {
+            newEmergencyMarkerIndeces.push(index);
 
-        if(emergencyMarkerIndeces.includes(index)) {
-            emergencyMarkers[index].setPosition({
-                lat: cooordinates.latitude,
-                lng: cooordinates.longitude
-            });
-
-            emergencyMarkerIndeces.splice(index, 1);
-        } else {
-            emergencyMarkers[index] = new google.maps.Marker({
-                position: {
+            if(emergencyMarkerIndeces.includes(index)) {
+                emergencyMarkers[index].setPosition({
                     lat: cooordinates.latitude,
                     lng: cooordinates.longitude
-                },
-                map: emergencyMap,
-                icon: (authUser.responder.type === "Human") ? getMapAssets().markerHuman : getMapAssets().markerVeterinary
-            });
+                });
+
+                emergencyMarkerIndeces.splice(index, 1);
+            } else {
+                emergencyMarkers[index] = new google.maps.Marker({
+                    position: {
+                        lat: cooordinates.latitude,
+                        lng: cooordinates.longitude
+                    },
+                    map: emergencyMap,
+                    icon: (authUser.responder.type === "Human") ? getMapAssets().markerHuman : getMapAssets().markerVeterinary
+                });
+            }
+            bounds.extend(emergencyMarkers[index].position);
+            boundsLength++;
+            emergencyMarkers[index].setMap(emergencyMap);
         }
-        bounds.extend(emergencyMarkers[index].position);
-        emergencyMarkers[index].setMap(emergencyMap);
     }
 
-    index = "subAccount" + loadedAlertId;
+    let index = "subAccount" + loadedAlertId;
     newEmergencyMarkerIndeces.push(index);
 
     if(emergencyMarkerIndeces.includes(index)) {
@@ -1230,10 +1235,10 @@ let updateEmergencyMap = function(alert) {
         });
     }
     bounds.extend(emergencyMarkers[index].position);
+    boundsLength++;
     emergencyMarkers[index].setMap(emergencyMap);
 
-    if(isEmergencyPageFirstLoad) {
-        console.log("sdsd");
+    if(isEmergencyPageFirstLoad && boundsLength > 1) {
         emergencyMap.fitBounds(bounds);
         isEmergencyPageFirstLoad = false;
     }
@@ -1245,8 +1250,9 @@ let updateEmergencyMap = function(alert) {
     emergencyMarkerIndeces = newEmergencyMarkerIndeces;
 };
 let cameraSuccess = function(imageData) {
+    let url = 'data:image/jpeg;base64,' + imageData;
     let message = {
-        imageSrc: 'data:image/jpeg;base64,' + imageData
+        imageSrc: url
     };
 
     messages.addMessage(message);
@@ -1255,17 +1261,6 @@ let cameraSuccess = function(imageData) {
     $$(".messages").scrollTo(0, 100000);
 
     let authUser = getUser();
-
-    let formData = new FormData();
-    formData.append('type', "text");
-    formData.append('photo', imageData);
-    if(authUser.responder) {
-        formData.append('responder_id', authUser.responder.id);
-        formData.append('alert_id', loadedAlertId);
-    } else {
-        formData.append('sub_account_id', getSelectedSubAccount().id);
-        formData.append('alert_id', getOngoingAlert().id);
-    }
 
     let sendMessage = function(formData) {
         app.request({
@@ -1279,7 +1274,23 @@ let cameraSuccess = function(imageData) {
         });
     };
 
-    sendMessage(formData);
+    fetch(url)
+        .then(res => res.blob())
+        .then(blob => {
+            let formData = new FormData();
+            formData.append('type', "photo");
+            formData.append('message', blob);
+
+            if(authUser.responder) {
+                formData.append('responder_id', authUser.responder.id);
+                formData.append('alert_id', loadedAlertId);
+            } else {
+                formData.append('sub_account_id', getSelectedSubAccount().id);
+                formData.append('alert_id', getOngoingAlert().id);
+            }
+
+            sendMessage(formData);
+        });
 };
 let cameraError = function(message) {
     alert('Failed because: ' + message);
