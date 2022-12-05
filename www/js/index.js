@@ -152,18 +152,20 @@ let getLocation = function() {
     }
 };
 let getMapAssets = function() {
+    let scaledSize = (env === "prod") ? new google.maps.Size(44, 62) : new google.maps.Size(48, 62);
+
     return {
         markerHuman: {
             url: "img/marker-human.png",
-            scaledSize: new google.maps.Size(44, 62)
+            scaledSize: scaledSize
         },
         markerVeterinary: {
             url: "img/marker-veterinary.png",
-            scaledSize: new google.maps.Size(44, 62)
+            scaledSize: scaledSize
         },
         markerUser: {
             url: "img/marker-user.png",
-            scaledSize: new google.maps.Size(44, 62)
+            scaledSize: scaledSize
         },
         mapStyles: [
             {
@@ -611,6 +613,16 @@ $$(document).on("click", ".view-medical-record", function() {
             }
         ]
     }).open();
+
+    if($$(".popup-medical-records").length) {
+        $$(".dialog-button").each(function() {
+            if($$(this).html() === "Delete" || $$(this).html() === "Edit") {
+                $$(this).addClass("display-none");
+            } else {
+                $$(this).removeClass("display-none");
+            }
+        });
+    }
 });
 
 // Account Settings
@@ -1248,6 +1260,37 @@ let updateEmergencyMap = function(alert) {
     }
 
     emergencyMarkerIndeces = newEmergencyMarkerIndeces;
+
+    // Load Medical Records
+    if(alert.medicalRecords.length === 0) {
+        $$("#alert-no-medical-records").removeClass("display-none");
+        $$("#alert-medical-records-container").addClass("display-none");
+    } else {
+        $$("#alert-no-medical-records").addClass("display-none");
+        $$("#alert-medical-records-container").removeClass("display-none");
+
+        let medicalRecords = alert.medicalRecords;
+        let content = '';
+
+        for(let i = 0; i < medicalRecords.length; i++) {
+            content += '    <li>';
+            content += '        <a href="#" class="item-link item-content view-medical-record" data-medical-record-id="' + medicalRecords[i].id + '">';
+            content += '            <div class="item-inner">';
+            content += '                <div class="item-title-row">';
+            content += '                    <div class="item-title">' + medicalRecords[i].title + '</div>';
+            content += '                </div>';
+            if(medicalRecords[i].details) {
+                content += '            <div class="item-text">' + medicalRecords[i].details + '</div>';
+            }
+            content += '            </div>';
+            content += '        </a>';
+            content += '    </li>';
+        }
+
+        if($$("#alert-medical-records-container ul").html() !== content) {
+            $$("#alert-medical-records-container ul").html(content);
+        }
+    }
 };
 let cameraSuccess = function(imageData) {
     let url = 'data:image/jpeg;base64,' + imageData;

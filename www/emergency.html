@@ -33,7 +33,7 @@
 						<div class="list" id="selected-alert" style="margin-top:0; margin-bottom:0">
 							<ul>
 								<li>
-									<a href="#" class="item-link item-content" id="view-alert-medical-records"></a>
+									<a href="#" class="item-link item-content popup-open" id="view-alert-medical-records" data-popup=".popup-medical-records"></a>
 								</li>
 								<li>
 									<div class="display-flex fle padding-horizontal padding-bottom" id="alert-responder-action">
@@ -78,6 +78,28 @@
 					</div>
 				</div>
 			</div>
+		</div>
+	</div>
+	
+	<div class="popup popup-medical-records">
+		<div class="navbar">
+			<div class="navbar-bg"></div>
+			<div class="navbar-inner">
+				<div class="left">
+					<a href="#" class="link ripple-inset popup-close">
+						<i class="icon icon-back"></i>
+					</a>
+				</div>
+				<div class="title">Medical Records</div>
+			</div>
+		</div>
+		
+		<div class="list media-list chevron-center display-none" id="alert-medical-records-container" style="padding-bottom:56px">
+			<ul></ul>
+		</div>
+		
+		<div class="card" id="alert-no-medical-records" style="margin-left:0; margin-right:0">
+			<div class="card-content-padding text-align-center">No medical records added.</div>
 		</div>
 	</div>
 </div>

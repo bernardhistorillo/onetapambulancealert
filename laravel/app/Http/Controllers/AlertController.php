@@ -84,6 +84,7 @@ class AlertController extends Controller
         $alert = Alert::find($request->alert_id);
         $alert['messages'] = $alert->messages();
         $alert['alertResponders'] = $alert->alertResponders();
+        $alert['medicalRecords'] = $alert->subAccount()->medicalRecords();
 
         return response()->json([
             'alert' => $alert
