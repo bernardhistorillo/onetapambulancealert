@@ -8,23 +8,34 @@
         <table class="table table-striped table-bordered data-table invisible">
             <thead>
                 <tr>
-                    <th>Name</th>
-                    <th>Birthdate</th>
-                    <th>Email Address</th>
-                    <th>Contact Number</th>
-                    <th>Address</th>
-                    <th>Type</th>
+                    <th class="align-middle">Name</th>
+                    <th class="align-middle">Birthdate</th>
+                    <th class="align-middle">Email Address</th>
+                    <th class="align-middle">Contact Number</th>
+                    <th class="align-middle">Address</th>
+                    <th class="align-middle">Role</th>
+                    <th class="align-middle"></th>
                 </tr>
             </thead>
             <tbody>
                 @foreach($users as $user)
                 <tr>
-                    <td>{{ $user->fullName() }}</td>
-                    <td>{{ \Carbon\Carbon::parse($user['birthdate'])->format('F n, Y') }}</td>
-                    <td>{{ $user['email'] }}</td>
-                    <td>{{ $user['contact_number'] }}</td>
-                    <td>{{ $user['address'] }}</td>
-                    <td>{{ $user->role() }}</td>
+                    <td class="align-middle">{{ $user->fullName() }}</td>
+                    <td class="align-middle">{{ \Carbon\Carbon::parse($user['birthdate'])->format('F n, Y') }}</td>
+                    <td class="align-middle">{{ $user['email'] }}</td>
+                    <td class="align-middle">{{ $user['contact_number'] }}</td>
+                    <td class="align-middle">{{ $user['address'] }}</td>
+                    <td class="align-middle user-role">
+                        {{ $user->role() }}
+                        @if($user->responder())
+                        <div class="font-size-80">{{ $user->responder()['name'] }}</div>
+                        @endif
+                    </td>
+                    <td class="align-middle">
+                        @if($user->role() != 'Admin')
+                        <button class="btn btn-outline-primary btn-sm edit-role-confirm" value="{{ $user['id'] }}" data-user-role="{{ $user->role() }}" data-responder-id="{{ $user['responder_id'] }}">Edit&nbsp;Role</button>
+                        @endif
+                    </td>
                 </tr>
                 @endforeach
             </tbody>

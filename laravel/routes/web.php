@@ -1,8 +1,8 @@
 <?php
 
+use App\Http\Controllers\AlertController;
 use App\Http\Controllers\AuthenticationController;
 use App\Http\Controllers\HomeController;
-use App\Http\Controllers\IncidentReportController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -26,6 +26,9 @@ Route::middleware(['auth'])->group(function() {
     Route::get('/logout', [AuthenticationController::class, 'logout'])->name('auth.logout');
 
     Route::get('/dashboard', [HomeController::class, 'index'])->name('dashboard.index');
+
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
-    Route::get('/incident_reports', [IncidentReportController::class, 'index'])->name('incident_reports.index');
+    Route::post('/editRole', [UserController::class, 'editRole'])->name('users.editRole');
+
+    Route::get('/alerts', [AlertController::class, 'index'])->name('alerts.index');
 });

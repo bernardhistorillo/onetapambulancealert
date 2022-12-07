@@ -133,3 +133,70 @@ $(document).on("submit", "#login-form", function(e) {
         button.html("Submit");
     });
 });
+
+// Users
+$(document).on("click", ".edit-role-confirm", function() {
+    let userRole = $(this).attr("data-user-role");
+    $("input[name='user_role'][value='" + userRole + "']").prop("checked", true);
+    $("input[name='user_id']").val($(this).val());
+
+    console.log($(this).attr("data-responder-id"));
+    $("select[name='responder_id']").prop("disabled", !(userRole === "Responder"));
+    $("select[name='responder_id']").val($(this).attr("data-responder-id"));
+
+    $("#modal-edit-role").modal("show");
+});
+
+$(document).on("input", "input[name='user_role']", function() {
+    $("select[name='responder_id']").prop("disabled", !($(this).val() === "Responder"));
+});
+
+$(document).on("submit", "#edit-role-form", function(e) {
+    e.preventDefault();
+
+    let cancelButton = $(this).find("button[data-bs-dismiss='modal']");
+    cancelButton.addClass("d-none")
+
+    let button = $(this).find("button[type='submit']");
+    button.prop("disabled", true);
+    button.html("Processing");
+
+    let url = $(this).attr("action");
+    let formData = new FormData($(this)[0]);
+
+    let userRole = $(this).find("input[name='user_role']:checked").val();
+    let userId = $(this).find("input[name='user_id']").val();
+    let responderId = $(this).find("select[name='responder_id']").val();
+    let editRoleButton = $(".edit-role-confirm[value='" + userId + "']");
+
+    $.ajax({
+        url: url,
+        method: "POST",
+        cache: false,
+        contentType: false,
+        processData: false,
+        data: formData
+    }).done(function(response) {
+        editRoleButton.attr('data-user-role', userRole);
+
+        console.log(responderId);
+        if(userRole === "Responder") {
+            editRoleButton.closest('tr').find('.user-role').html(userRole + '<div class="font-size-80">' + response.responder.name + '</div>');
+            editRoleButton.attr('data-responder-id', responderId);
+        } else {
+            editRoleButton.closest('tr').find('.user-role').html(userRole);
+        }
+
+        let modalSuccess = $("#modal-success");
+        modalSuccess.find(".message").html("Role Updated");
+        modalSuccess.modal("show");
+    }).fail(function(error) {
+        showErrorFromAjax(error);
+    }).always(function() {
+        button.prop("disabled", false);
+        button.html("Submit");
+
+        cancelButton.removeClass("d-none");
+        $("#modal-edit-role").modal("hide");
+    });
+});

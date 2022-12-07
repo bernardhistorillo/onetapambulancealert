@@ -58,10 +58,17 @@
                 </a>
             </li>
 
-            <li class="nav-item {{ (Route::currentRouteName() == 'incident_reports.index') ? 'active' : '' }}">
-                <a class="nav-link" href="{{ route('incident_reports.index') }}">
+            <li class="nav-item {{ (Route::currentRouteName() == 'alerts.index') ? 'active' : '' }}">
+                <a class="nav-link" href="{{ route('alerts.index') }}">
+                    <i class="fas fa-fw fa-truck-medical"></i>
+                    <span>Responders</span>
+                </a>
+            </li>
+
+            <li class="nav-item {{ (Route::currentRouteName() == 'alerts.index') ? 'active' : '' }}">
+                <a class="nav-link" href="{{ route('alerts.index') }}">
                     <i class="fas fa-fw fa-file-invoice"></i>
-                    <span>Incident Reports</span>
+                    <span>Alerts</span>
                 </a>
             </li>
         </ul>

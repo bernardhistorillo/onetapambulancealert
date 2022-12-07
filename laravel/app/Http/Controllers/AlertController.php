@@ -14,6 +14,10 @@ use Illuminate\Http\Request;
 
 class AlertController extends Controller
 {
+    public function index(Request $request) {
+        return view('alerts.index');
+    }
+
     public function alert(Request $request) {
         $request->validate([
             'sub_account_id' => 'required|numeric',

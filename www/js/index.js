@@ -21,7 +21,7 @@
 // See https://cordova.apache.org/docs/en/latest/cordova/events/events.html#deviceready
 
 let env = "local"; // prod or local
-let version = "1_0_1"; // prod or local
+let version = "1_0_2"; // prod or local
 let routes = [
     {
         path: '/',

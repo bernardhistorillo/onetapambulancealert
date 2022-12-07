@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Responder;
 use App\Models\User;
 use Illuminate\Http\Request;
 
@@ -12,7 +13,36 @@ class UserController extends Controller
             ->orderBy('lastname')
             ->paginate(15);
 
-        return view('users.index', compact('users'));
+        $responders = Responder::query()
+            ->orderBy('name')
+            ->get();
+
+        return view('users.index', compact('users', 'responders'));
+    }
+
+    public function editRole(Request $request) {
+        $request->validate([
+            'user_id' => 'required|numeric',
+            'user_role' => 'required|string',
+        ]);
+
+        if($request->user_role == 'Responder') {
+            $request->validate([
+                'responder_id' => 'required|numeric',
+            ]);
+        }
+
+        $role = ($request->user_role == 'Responder') ? 2 : 3;
+        $responder_id = ($request->user_role == 'Responder') ? $request->responder_id : 0;
+
+        $user = User::find($request->user_id);
+        $user->role = $role;
+        $user->responder_id = $responder_id;
+        $user->update();
+
+        return response()->json([
+            'responder' => $user->responder()
+        ]);
     }
 
     public function getUser(Request $request) {
