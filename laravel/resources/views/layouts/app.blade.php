@@ -58,8 +58,8 @@
                 </a>
             </li>
 
-            <li class="nav-item {{ (Route::currentRouteName() == 'alerts.index') ? 'active' : '' }}">
-                <a class="nav-link" href="{{ route('alerts.index') }}">
+            <li class="nav-item {{ (Route::currentRouteName() == 'responders.index') ? 'active' : '' }}">
+                <a class="nav-link" href="{{ route('responders.index') }}">
                     <i class="fas fa-fw fa-truck-medical"></i>
                     <span>Responders</span>
                 </a>
@@ -99,11 +99,6 @@
                 </nav>
 
                 <div class="container-fluid">
-                    <!-- Page Heading -->
-                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
-                        <h1 class="h3 mb-0 text-gray-800 d-flex align-items-center">@yield('title')</h1>
-                    </div>
-
                     @yield('content')
                 </div>
             </div>

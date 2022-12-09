@@ -8,6 +8,8 @@ let pageOnload = async function() {
         homeOnload();
     } else if(currentRouteName === "users.index") {
         usersOnload();
+    } else if(currentRouteName === "responders.index") {
+        respondersOnload();
     }
 };
 let allOnload = async function() {
@@ -24,6 +26,10 @@ let homeOnload = function() {
 
 };
 let usersOnload = function() {
+    $('.data-table').DataTable({order:[]});
+    $('.data-table').removeClass("invisible");
+};
+let respondersOnload = function() {
     $('.data-table').DataTable({order:[]});
     $('.data-table').removeClass("invisible");
 };
@@ -179,7 +185,6 @@ $(document).on("submit", "#edit-role-form", function(e) {
     }).done(function(response) {
         editRoleButton.attr('data-user-role', userRole);
 
-        console.log(responderId);
         if(userRole === "Responder") {
             editRoleButton.closest('tr').find('.user-role').html(userRole + '<div class="font-size-80">' + response.responder.name + '</div>');
             editRoleButton.attr('data-responder-id', responderId);
@@ -198,5 +203,107 @@ $(document).on("submit", "#edit-role-form", function(e) {
 
         cancelButton.removeClass("d-none");
         $("#modal-edit-role").modal("hide");
+    });
+});
+
+$(document).on("click", "#add-responder-show-modal", function() {
+    $("#modal-add-responder").modal("show");
+});
+
+$(document).on("submit", "#add-responder-form", function(e) {
+    e.preventDefault();
+
+    let cancelButton = $(this).find("button[data-bs-dismiss='modal']");
+    cancelButton.addClass("d-none")
+
+    let button = $(this).find("button[type='submit']");
+    button.prop("disabled", true);
+    button.html("Processing");
+
+    let form = $(this);
+    let url = form.attr("action");
+    let formData = new FormData(form[0]);
+
+    $.ajax({
+        url: url,
+        method: "POST",
+        cache: false,
+        contentType: false,
+        processData: false,
+        data: formData
+    }).done(function(response) {
+        $("#responders-table-container").html(response.content);
+        $('.data-table').DataTable({order:[]});
+        $('.data-table').removeClass("invisible");
+
+        form.find("input[type='text']").val("");
+        form.find("input[type='number']").val("");
+
+        let modalSuccess = $("#modal-success");
+        modalSuccess.find(".message").html("Responder Added");
+        modalSuccess.modal("show");
+    }).fail(function(error) {
+        showErrorFromAjax(error);
+    }).always(function() {
+        button.prop("disabled", false);
+        button.html("Submit");
+
+        cancelButton.removeClass("d-none");
+        $("#modal-add-responder").modal("hide");
+    });
+});
+
+$(document).on("click", ".edit-responder-show-modal", function() {
+    let form = $("#edit-responder-form");
+
+    form.find("[name='responder_id']").val($(this).val());
+    form.find("[name='type'][value='" + $(this).attr("data-type") + "']").prop("checked", true);
+    form.find("[name='name']").val($(this).attr("data-name"));
+    form.find("[name='latitude']").val($(this).attr("data-latitude"));
+    form.find("[name='longitude']").val($(this).attr("data-longitude"));
+
+    $("#modal-edit-responder").modal("show");
+});
+
+$(document).on("submit", "#edit-responder-form", function(e) {
+    e.preventDefault();
+
+    let cancelButton = $(this).find("button[data-bs-dismiss='modal']");
+    cancelButton.addClass("d-none")
+
+    let button = $(this).find("button[type='submit']");
+    button.prop("disabled", true);
+    button.html("Processing");
+
+    let form = $(this);
+    let url = form.attr("action");
+    let formData = new FormData(form[0]);
+
+    $.ajax({
+        url: url,
+        method: "POST",
+        cache: false,
+        contentType: false,
+        processData: false,
+        data: formData
+    }).done(function(response) {
+        $("#responders-table-container").html(response.content);
+        $('.data-table').DataTable({order:[]});
+        $('.data-table').removeClass("invisible");
+
+        form.find("input[type='text']").val("");
+        form.find("input[type='number']").val("");
+
+        let modalSuccess = $("#modal-success");
+        modalSuccess.find(".message").html("Responder Saved");
+        modalSuccess.modal("show");
+    }).fail(function(error) {
+        showErrorFromAjax(error);
+    }).always(function() {
+        button.prop("disabled", false);
+        button.html("Submit");
+
+        cancelButton.removeClass("d-none");
+        $("#modal-edit-responder").modal("hide");
     });
 });

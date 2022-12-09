@@ -3,6 +3,7 @@
 use App\Http\Controllers\AlertController;
 use App\Http\Controllers\AuthenticationController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\ResponderController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -29,6 +30,10 @@ Route::middleware(['auth'])->group(function() {
 
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
     Route::post('/editRole', [UserController::class, 'editRole'])->name('users.editRole');
+
+    Route::get('/responders', [ResponderController::class, 'index'])->name('responders.index');
+    Route::post('/addResponder', [ResponderController::class, 'addResponder'])->name('responders.add');
+    Route::post('/editResponder', [ResponderController::class, 'editResponder'])->name('responders.edit');
 
     Route::get('/alerts', [AlertController::class, 'index'])->name('alerts.index');
 });

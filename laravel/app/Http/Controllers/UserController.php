@@ -11,7 +11,7 @@ class UserController extends Controller
     public function index() {
         $users = User::query()
             ->orderBy('lastname')
-            ->paginate(15);
+            ->get();
 
         $responders = Responder::query()
             ->orderBy('name')

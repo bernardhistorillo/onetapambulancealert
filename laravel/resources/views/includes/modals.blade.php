@@ -52,7 +52,8 @@
     </div>
 </div>
 
-@if(Auth::check() && Route::currentRouteName() == "users.index")
+@if(Auth::check())
+    @if(Route::currentRouteName() == "users.index")
 <div class="modal fade" id="modal-edit-role" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content" style="border-radius:20px">
@@ -92,4 +93,109 @@
         </div>
     </div>
 </div>
+    @endif
+
+    @if(Route::currentRouteName() == "responders.index")
+    <div class="modal fade" id="modal-add-responder" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius:20px">
+                <div class="modal-header align-items-center justify-content-between" style="z-index:1">
+                    <h5 class="modal-title mt-1">Add Responder</h5>
+                    <button type="button" class="bg-white font-size-140 text-black-50" data-bs-dismiss="modal" aria-label="Close" style="border:0">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <form id="add-responder-form" action="{{ route('responders.add') }}">
+                    <div class="modal-body py-4">
+                        <label for="add-name">Type</label>
+                        <div class="d-flex mb-3">
+                            <div class="custom-control custom-radio custom-control-inline">
+                                <input type="radio" id="responder-type-1" name="type" class="custom-control-input" value="Human" checked>
+                                <label class="custom-control-label mr-2" for="responder-type-1">Human</label>
+                            </div>
+                            <div class="custom-control custom-radio custom-control-inline">
+                                <input type="radio" id="responder-type-2" name="type" class="custom-control-input" value="Veterinary">
+                                <label class="custom-control-label" for="responder-type-2">Veterinary</label>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="add-name">Name</label>
+                            <input type="text" name="name" class="form-control py-2 px-3" id="add-name" placeholder="Name" required />
+                        </div>
+
+                        <div class="d-flex mb-2">
+                            <div class="mr-2">
+                                <label for="add-latitude">Latitude</label>
+                                <input type="number" name="latitude" class="form-control py-2 px-3" id="add-latitude" placeholder="Latitude" step="any" required />
+                            </div>
+
+                            <div class="ml-2">
+                                <label for="add-longitude">Longitude</label>
+                                <input type="number" name="longitude" class="form-control py-2 px-3" id="add-longitude" placeholder="Longitude" step="any" required />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer justify-content-center">
+                        <button type="button" class="btn btn-outline-primary font-weight-500 px-4" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary font-weight-500 px-4">Submit</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modal-edit-responder" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius:20px">
+                <div class="modal-header align-items-center justify-content-between" style="z-index:1">
+                    <h5 class="modal-title mt-1">Edit Responder</h5>
+                    <button type="button" class="bg-white font-size-140 text-black-50" data-bs-dismiss="modal" aria-label="Close" style="border:0">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <form id="edit-responder-form" action="{{ route('responders.edit') }}">
+                    <input type="hidden" name="responder_id" />
+
+                    <div class="modal-body py-4">
+                        <label for="add-name">Type</label>
+                        <div class="d-flex mb-3">
+                            <div class="custom-control custom-radio custom-control-inline">
+                                <input type="radio" id="edit-responder-type-1" name="type" class="custom-control-input" value="Human" checked>
+                                <label class="custom-control-label mr-2" for="edit-responder-type-1">Human</label>
+                            </div>
+                            <div class="custom-control custom-radio custom-control-inline">
+                                <input type="radio" id="edit-responder-type-2" name="type" class="custom-control-input" value="Veterinary">
+                                <label class="custom-control-label" for="edit-responder-type-2">Veterinary</label>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="edit-name">Name</label>
+                            <input type="text" name="name" class="form-control py-2 px-3" id="edit-name" placeholder="Name" required />
+                        </div>
+
+                        <div class="d-flex mb-2">
+                            <div class="mr-2">
+                                <label for="edit-latitude">Latitude</label>
+                                <input type="number" name="latitude" class="form-control py-2 px-3" id="edit-latitude" placeholder="Latitude" step="any" required />
+                            </div>
+
+                            <div class="ml-2">
+                                <label for="edit-longitude">Longitude</label>
+                                <input type="number" name="longitude" class="form-control py-2 px-3" id="edit-longitude" placeholder="Longitude" step="any" required />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer justify-content-center">
+                        <button type="button" class="btn btn-outline-primary font-weight-500 px-4" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary font-weight-500 px-4">Submit</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    @endif
 @endif
