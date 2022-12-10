@@ -14,8 +14,18 @@ use Illuminate\Http\Request;
 
 class AlertController extends Controller
 {
-    public function index(Request $request) {
-        return view('alerts.index');
+    public function index() {
+        $alerts = Alert::select('alerts.*', 'users.firstname', 'users.middlename', 'users.lastname', 'sub_accounts.name as sub_account_name', 'sub_accounts.type', 'responders.name as responder_name', 'alert_responders.updated_at as alert_responder_updated_at')
+            ->join('sub_accounts', 'alerts.sub_account_id', 'sub_accounts.id')
+            ->join('users', 'sub_accounts.user_id', 'users.id')
+            ->leftJoin('alert_responders', function($join) {
+                $join->on('alerts.id', 'alert_responders.alert_id');
+                $join->where('alert_responders.status', 'Completed');
+            })
+            ->leftJoin('responders', 'alert_responders.responder_id', 'responders.id')
+            ->get();
+
+        return view('alerts.index', compact('alerts'));
     }
 
     public function alert(Request $request) {

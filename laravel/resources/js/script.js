@@ -10,6 +10,8 @@ let pageOnload = async function() {
         usersOnload();
     } else if(currentRouteName === "responders.index") {
         respondersOnload();
+    } else if(currentRouteName === "alerts.index") {
+        alertsOnload();
     }
 };
 let allOnload = async function() {
@@ -30,6 +32,10 @@ let usersOnload = function() {
     $('.data-table').removeClass("invisible");
 };
 let respondersOnload = function() {
+    $('.data-table').DataTable({order:[]});
+    $('.data-table').removeClass("invisible");
+};
+let alertsOnload = function() {
     $('.data-table').DataTable({order:[]});
     $('.data-table').removeClass("invisible");
 };

@@ -13,6 +13,7 @@
             <thead>
             <tr>
                 <th class="align-middle">Name</th>
+                <th class="align-middle">Type</th>
                 <th class="align-middle">Responder</th>
                 <th class="align-middle">Status</th>
                 <th class="align-middle"></th>
@@ -21,15 +22,18 @@
             <tbody>
                 @foreach($alerts as $alert)
                 <tr>
-                    <td class="align-middle">{{ $user->fullName() }}</td>
-                    <td class="align-middle">{{ \Carbon\Carbon::parse($user['birthdate'])->format('F n, Y') }}</td>
-                    <td class="align-middle">{{ $user['email'] }}</td>
-                    <td class="align-middle">{{ $user['contact_number'] }}</td>
-                    <td class="align-middle">{{ $user['address'] }}</td>
                     <td class="align-middle">
-                        @if($user->role() != 'Admin')
-                            <button class="btn btn-outline-primary btn-sm edit-role-confirm" value="{{ $user['id'] }}" data-user-role="{{ $user->role() }}" data-responder-id="{{ $user['responder_id'] }}">Edit&nbsp;Role</button>
-                        @endif
+                        <div>{{ $alert['sub_account_name'] }}</div>
+                        <div class="font-size-80">User: {{ $alert['firstname'] . ' ' . $alert['middlename'] . ' ' . $alert['lastname'] }}</div>
+                    </td>
+                    <td class="align-middle">{{ $alert['type'] }}</td>
+                    <td class="align-middle">{!! ($alert['responder_name']) ?? '<span class="font-italic">Pending</span>' !!}</td>
+                    <td class="align-middle">
+                        <div>{{ $alert['status'] }}</div>
+                        <div class="font-size-80">Duration: {{ \Carbon\Carbon::parse($alert['created_at'])->longAbsoluteDiffForHumans(\Carbon\Carbon::parse($alert['alert_responder_updated_at']), 2) }}</div>
+                    </td>
+                    <td class="align-middle text-center">
+                        <a href="https://www.google.com/maps/search/?api=1&query={{ $alert['latitude'] }}%2C{{ $alert['longitude'] }}" target="_blank" class="btn btn-sm btn-outline-primary">View Location</a>
                     </td>
                 </tr>
                 @endforeach
