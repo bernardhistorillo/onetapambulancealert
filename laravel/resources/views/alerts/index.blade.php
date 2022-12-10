@@ -6,4 +6,35 @@
 <div class="d-sm-flex align-items-center justify-content-between mb-4">
     <h1 class="h3 mb-0 text-gray-800 d-flex align-items-center">Alerts</h1>
 </div>
+
+<div class="py-2">
+    <div class="table-responsive">
+        <table class="table table-striped table-bordered data-table invisible">
+            <thead>
+            <tr>
+                <th class="align-middle">Name</th>
+                <th class="align-middle">Responder</th>
+                <th class="align-middle">Status</th>
+                <th class="align-middle"></th>
+            </tr>
+            </thead>
+            <tbody>
+                @foreach($alerts as $alert)
+                <tr>
+                    <td class="align-middle">{{ $user->fullName() }}</td>
+                    <td class="align-middle">{{ \Carbon\Carbon::parse($user['birthdate'])->format('F n, Y') }}</td>
+                    <td class="align-middle">{{ $user['email'] }}</td>
+                    <td class="align-middle">{{ $user['contact_number'] }}</td>
+                    <td class="align-middle">{{ $user['address'] }}</td>
+                    <td class="align-middle">
+                        @if($user->role() != 'Admin')
+                            <button class="btn btn-outline-primary btn-sm edit-role-confirm" value="{{ $user['id'] }}" data-user-role="{{ $user->role() }}" data-responder-id="{{ $user['responder_id'] }}">Edit&nbsp;Role</button>
+                        @endif
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+</div>
 @endsection
