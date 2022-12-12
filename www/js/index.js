@@ -21,7 +21,7 @@
 // See https://cordova.apache.org/docs/en/latest/cordova/events/events.html#deviceready
 
 let env = "local"; // prod or local
-let version = "1_0_2"; // prod or local
+let version = "1_0_3"; // prod or local
 let routes = [
     {
         path: '/',
@@ -781,6 +781,11 @@ let loadRespondersPage = async function() {
         let bounds = new google.maps.LatLngBounds();
         let markers = [];
         for(let i = 0; i < responders.length; i++) {
+            let infowindow = new google.maps.InfoWindow({
+                content: '<div style="color:black; font-size:16px">' + responders[i].name + '</div>',
+                ariaLabel: "Uluru",
+            });
+
             markers[i] = new google.maps.Marker({
                 position: {
                     lat: parseFloat(responders[i].latitude),
@@ -789,6 +794,13 @@ let loadRespondersPage = async function() {
                 map: map,
                 // animation: google.maps.Animation.BOUNCE,
                 icon: (responders[i].type === "Human") ? getMapAssets().markerHuman : getMapAssets().markerVeterinary
+            });
+
+            markers[i].addListener("click", () => {
+                infowindow.open({
+                    anchor: markers[i],
+                    map,
+                });
             });
 
             bounds.extend(markers[i].position);
@@ -1162,6 +1174,11 @@ let updateEmergencyMap = function(alert) {
 
             emergencyMarkerIndeces.splice(index, 1);
         } else {
+            let infowindow = new google.maps.InfoWindow({
+                content: '<div style="color:black; font-size:16px">' + alertResponders[i].name + '</div>',
+                ariaLabel: "Uluru",
+            });
+
             emergencyMarkers[index] = new google.maps.Marker({
                 position: {
                     lat: parseFloat(alertResponders[i].latitude),
@@ -1169,6 +1186,13 @@ let updateEmergencyMap = function(alert) {
                 },
                 map: emergencyMap,
                 icon: (alertResponders[i].type === "Human") ? getMapAssets().markerHuman : getMapAssets().markerVeterinary
+            });
+
+            emergencyMarkers[index].addListener("click", () => {
+                infowindow.open({
+                    anchor: emergencyMarkers[index],
+                    emergencyMap,
+                });
             });
         }
 
@@ -1222,7 +1246,18 @@ let updateEmergencyMap = function(alert) {
             }
             bounds.extend(emergencyMarkers[index].position);
             boundsLength++;
+
+            let infowindow = new google.maps.InfoWindow({
+                content: '<div style="color:black; font-size:16px">' + authUser.responder.name + '</div>',
+                ariaLabel: "Uluru",
+            });
             emergencyMarkers[index].setMap(emergencyMap);
+            emergencyMarkers[index].addListener("click", () => {
+                infowindow.open({
+                    anchor: emergencyMarkers[index],
+                    emergencyMap,
+                });
+            });
         }
     }
 
@@ -1246,9 +1281,21 @@ let updateEmergencyMap = function(alert) {
             icon: getMapAssets().markerUser
         });
     }
+
     bounds.extend(emergencyMarkers[index].position);
     boundsLength++;
+
+    let infowindow = new google.maps.InfoWindow({
+        content: '<div style="color:black; font-size:16px">' + alert.subAccount.name + '</div>',
+        ariaLabel: "Uluru",
+    });
     emergencyMarkers[index].setMap(emergencyMap);
+    emergencyMarkers[index].addListener("click", () => {
+        infowindow.open({
+            anchor: emergencyMarkers[index],
+            emergencyMap,
+        });
+    });
 
     if(isEmergencyPageFirstLoad && boundsLength > 1) {
         emergencyMap.fitBounds(bounds);
