@@ -89,6 +89,9 @@ let onLoad = function() {
         view.router.navigate('/terms/');
     } else {
         if(!authUser) {
+            $$(".end-user-element").removeClass("display-none");
+            $$(".responder-element").addClass("display-none");
+
             view.router.navigate('/authentication/');
         } else {
             loadHomePage();
