@@ -23,6 +23,7 @@ class AlertController extends Controller
                 $join->where('alert_responders.status', 'Completed');
             })
             ->leftJoin('responders', 'alert_responders.responder_id', 'responders.id')
+            ->orderBy('alerts.id', 'desc')
             ->get();
 
         return view('alerts.index', compact('alerts'));
