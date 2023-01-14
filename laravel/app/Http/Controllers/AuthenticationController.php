@@ -6,9 +6,11 @@ use App\Models\Referral;
 use App\Models\SubAccount;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Session;
 
 class AuthenticationController extends Controller
@@ -103,5 +105,32 @@ class AuthenticationController extends Controller
         return response()->json([
             'user' => $user->data()
         ]);
+    }
+
+    public function requestPasswordReset(Request $request) {
+        $request->validate([
+            'email' => 'required|email'
+        ]);
+
+        $user = User::where('email', 'LIKE', $request->email)
+            ->first();
+
+        if(!$user) {
+            return response()->json([
+                'errors' => "Email doesn't exist.",
+            ], 422);
+        }
+
+        $status = Password::sendResetLink(
+            $request->only('email')
+        );
+
+        return $status === Password::RESET_LINK_SENT
+            ? response()->json([
+                'status' => $status
+            ])
+            : response()->json([
+                'errors' => $status,
+            ], 422);
     }
 }

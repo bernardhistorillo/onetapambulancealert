@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AlertController;
+use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\AuthenticationController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ResponderController;
@@ -21,6 +22,10 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['guest'])->group(function() {
     Route::get('/', [AuthenticationController::class, 'loginPage'])->name('auth.loginPage');
     Route::post('/login', [AuthenticationController::class, 'login'])->name('auth.login');
+
+    Route::get('reset-password/{token}', [NewPasswordController::class, 'create'])->name('password.reset');
+    Route::post('reset-password', [NewPasswordController::class, 'store'])->name('password.update');
+    Route::get('reset-password-successful', [NewPasswordController::class, 'successful'])->name('password.update.successful');
 });
 
 Route::middleware(['auth'])->group(function() {

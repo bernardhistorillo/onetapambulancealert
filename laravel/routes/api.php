@@ -9,6 +9,7 @@ use App\Http\Controllers\SubAccountController;
 use App\Http\Controllers\UserController;
 use App\Models\Alert;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -28,6 +29,7 @@ Route::get('/try', function() {
 
 Route::post('/signup', [AuthenticationController::class, 'signup']);
 Route::post('/login', [AuthenticationController::class, 'mobileLogin']);
+Route::post('/requestPasswordReset', [AuthenticationController::class, 'requestPasswordReset']);
 
 Route::post('/getUser', [UserController::class, 'getUser']);
 Route::post('/updateUser', [UserController::class, 'updateUser']);
@@ -48,3 +50,4 @@ Route::post('/loadAlerts', [AlertController::class, 'loadAlerts']);
 Route::post('/respond', [AlertController::class, 'respond']);
 Route::post('/stopResponse', [AlertController::class, 'stopResponse']);
 Route::post('/completeResponse', [AlertController::class, 'completeResponse']);
+

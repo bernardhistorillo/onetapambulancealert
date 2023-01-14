@@ -36,6 +36,10 @@ let routes = [
         url: './authentication.html',
         name: 'authentication'
     }, {
+        path: '/forgot-password/',
+        url: './forgot-password.html',
+        name: 'forgot-password'
+    }, {
         path: '/responders/',
         url: './responders.html',
         name: 'responders'
@@ -222,7 +226,9 @@ let getLocationOnSuccess = function(position) {
     }, 2000);
 };
 function getLocationOnError(error) {
-    gpsDialog.open();
+    if(!cooordinates) {
+        gpsDialog.open();
+    }
 
     setTimeout(function() {
         getLocation();
@@ -421,6 +427,34 @@ $$(document).on("submit", "#login-form", function(e) {
             view.router.back();
 
             loadHomePage();
+        },
+        error: function(xhr, status, message) {
+            let error = JSON.parse(xhr.response);
+            let errorMessage = (error.errors) ? error.errors : "Unable to connect to server.";
+
+            app.dialog.close();
+            app.dialog.alert(errorMessage, "Error");
+        }
+    });
+});
+$$(document).on("submit", "#forgot-password-form", function(e) {
+    e.preventDefault();
+
+    let form = $$(this);
+    app.dialog.preloader("Submitting Request");
+
+    let formData = new FormData(form[0]);
+
+    app.request({
+        method: "POST",
+        url: host + form.attr("action"),
+        data: formData,
+        timeout: 30000,
+        success: function(response, status, xhr) {
+            $$("#forgot-password-form input").val("");
+
+            app.dialog.close();
+            app.dialog.alert("Please check your email for instructions to reset your password.", "Request Submitted");
         },
         error: function(xhr, status, message) {
             let error = JSON.parse(xhr.response);
