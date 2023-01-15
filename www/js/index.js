@@ -21,7 +21,7 @@
 // See https://cordova.apache.org/docs/en/latest/cordova/events/events.html#deviceready
 
 let env = "local"; // prod or local
-let version = "1_0_3"; // prod or local
+let version = "1_0_4"; // prod or local
 let routes = [
     {
         path: '/',
@@ -1499,7 +1499,6 @@ let loadAlerts = function() {
                 if(alerts[i].status === "Ongoing") {
                     if(!_isRinging) {
                         _isRinging = !mutedAlerts.includes(alerts[i].id);
-                        isRinging = _isRinging;
                     }
 
                     content += '    <li>';
@@ -1525,6 +1524,8 @@ let loadAlerts = function() {
                     content += '    </li>';
                 }
             }
+
+            isRinging = _isRinging;
 
             if(content !== '') {
                 $$("#no-active-alerts").addClass("display-none");
