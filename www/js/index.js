@@ -21,7 +21,7 @@
 // See https://cordova.apache.org/docs/en/latest/cordova/events/events.html#deviceready
 
 let env = "local"; // prod or local
-let version = "1_0_4"; // prod or local
+let version = "1_0_5"; // prod or local
 let routes = [
     {
         path: '/',
@@ -89,13 +89,13 @@ let onLoad = function() {
     let hasAgreedToTNC = localStorage.getItem("hasAgreedToAgreement" + version);
     let authUser = getUser();
 
+    $$(".end-user-element").removeClass("display-none");
+    $$(".responder-element").addClass("display-none");
+
     if(hasAgreedToTNC !== "true") {
         view.router.navigate('/terms/');
     } else {
         if(!authUser) {
-            $$(".end-user-element").removeClass("display-none");
-            $$(".responder-element").addClass("display-none");
-
             view.router.navigate('/authentication/');
         } else {
             loadHomePage();
