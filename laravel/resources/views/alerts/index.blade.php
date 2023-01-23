@@ -12,6 +12,7 @@
         <table class="table table-striped table-bordered data-table invisible">
             <thead>
             <tr>
+                <th class="align-middle">Date&nbsp;&amp;&nbsp;Time</th>
                 <th class="align-middle">Name</th>
                 <th class="align-middle">Type</th>
                 <th class="align-middle">Responder</th>
@@ -22,6 +23,7 @@
             <tbody>
                 @foreach($alerts as $alert)
                 <tr>
+                    <td class="align-middle">{{ \Carbon\Carbon::parse($alert['created_at'])->isoFormat('llll') }}</td>
                     <td class="align-middle">
                         <div>{{ $alert['sub_account_name'] }}</div>
                         <div class="font-size-80">User: {{ $alert['firstname'] . ' ' . $alert['middlename'] . ' ' . $alert['lastname'] }}</div>
