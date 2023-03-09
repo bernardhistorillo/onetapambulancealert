@@ -115,7 +115,7 @@
                                             </ul>
                                         </div>
     
-                                        <div class="card display-none" id="no-active-alerts" style="margin-left:0; margin-right:0">
+                                        <div class="card responder-element display-none" id="no-active-alerts" style="margin-left:0; margin-right:0">
                                             <div class="card-content-padding text-align-center">No alerts for now.</div>
                                         </div>
                                     </div>
@@ -265,7 +265,40 @@
                                             </li>
                                         </ul>
                                     </div>
-        
+
+                                    <div class="block-title">Person To Contact In Case Of Emergency</div>
+                                    <div class="list no-hairlines-md">
+                                        <ul>
+                                            <li class="item-content item-input">
+                                                <div class="item-inner">
+                                                    <div class="item-title item-label">Name</div>
+                                                    <div class="item-input-wrap">
+                                                        <input type="text" id="person-to-contact-name" name="person_to_contact_name" placeholder="Name" required />
+                                                        <span class="input-clear-button"></span>
+                                                    </div>
+                                                </div>
+                                            </li>
+                                            <li class="item-content item-input">
+                                                <div class="item-inner">
+                                                    <div class="item-title item-label">Email Address</div>
+                                                    <div class="item-input-wrap">
+                                                        <input type="email" id="person-to-contact-email" name="person_to_contact_email" placeholder="Email Address" required />
+                                                        <span class="input-clear-button"></span>
+                                                    </div>
+                                                </div>
+                                            </li>
+                                            <li class="item-content item-input">
+                                                <div class="item-inner">
+                                                    <div class="item-title item-label">Contact Number</div>
+                                                    <div class="item-input-wrap">
+                                                        <input type="text" id="person-to-contact-contact-number" name="person_to_contact_contact_number" placeholder="11-digit mobile number" required />
+                                                        <span class="input-clear-button"></span>
+                                                    </div>
+                                                </div>
+                                            </li>
+                                        </ul>
+                                    </div>
+
                                     <div class="block" style="padding-bottom:56px">
                                         <button type="submit" class="col button button-fill button-round">Save Changes</button>
                                     </div>

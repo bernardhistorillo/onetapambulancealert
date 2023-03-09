@@ -21,7 +21,7 @@
 // See https://cordova.apache.org/docs/en/latest/cordova/events/events.html#deviceready
 
 let env = "local"; // prod or local
-let version = "1_0_5"; // prod or local
+let version = "1_0_7"; // prod or local
 let routes = [
     {
         path: '/',
@@ -277,6 +277,10 @@ let loadHomePage = async function() {
         $$("#email").val(authUser.email);
         $$("#contact_number").val(authUser.contact_number);
         $$("#address").val(authUser.address);
+
+        $$("#person-to-contact-name").val(authUser.person_to_contact_name);
+        $$("#person-to-contact-email").val(authUser.person_to_contact_email);
+        $$("#person-to-contact-contact-number").val(authUser.person_to_contact_contact_number);
 
         let selectedSubAccount = getSelectedSubAccount();
 
@@ -681,7 +685,7 @@ $$(document).on("submit", "#account-form", function(e) {
             localStorage.setItem("authUser" + version, JSON.stringify(response.user));
 
             app.dialog.close();
-            app.dialog.alert("Contact Information Saved", "Success");
+            app.dialog.alert("Information Saved", "Success");
 
             loadHomePage();
         },
@@ -1296,6 +1300,14 @@ let updateEmergencyMap = function(alert) {
                 });
             });
         }
+
+        $$("#person-to-contact").attr("data-sub-account-name", alert.subAccount.name);
+        $$("#person-to-contact").attr("data-responder-name", authUser.responder.name);
+        $$("#person-to-contact").attr("data-responder-latitude", authUser.responder.latitude);
+        $$("#person-to-contact").attr("data-responder-longitude", authUser.responder.longitude);
+        $$("#person-to-contact #name").html(alert.user.person_to_contact_name);
+        $$("#person-to-contact #email").html(alert.user.person_to_contact_email);
+        $$("#person-to-contact #contact-number").html(alert.user.person_to_contact_contact_number);
     }
 
     let index = "subAccount" + loadedAlertId;
@@ -1470,6 +1482,74 @@ $$(document).on("click", "#send-message", function() {
 
     sendMessage(formData);
 });
+$$(document).on("click", "#email-the-person-to-contact", function() {
+    app.dialog.create({
+        title: "Send Email",
+        text: "An email will be sent to " + "" + " to inform him or her about this emergency.",
+        buttons: [
+            {
+                text: "Cancel"
+            }, {
+                text: "Confirm",
+                onClick: function(dialog, e) {
+                    app.dialog.preloader("Loading");
+
+                    let subAccountName = $$("#person-to-contact").attr("data-sub-account-name");
+                    let responderName = $$("#person-to-contact").attr("data-responder-name");
+                    let responderLatitude = $$("#person-to-contact").attr("data-responder-latitude");
+                    let responderLongitude = $$("#person-to-contact").attr("data-responder-longitude");
+                    let name = $$("#person-to-contact #name").html();
+                    let email = $$("#person-to-contact #email").html();
+
+                    let formData = new FormData();
+                    formData.append('subAccountName', subAccountName);
+                    formData.append('responderName', responderName);
+                    formData.append('responderLatitude', responderLatitude);
+                    formData.append('responderLongitude', responderLongitude);
+                    formData.append('name', name);
+                    formData.append('email', email);
+
+                    app.request({
+                        method: "POST",
+                        url: host + "/api/emailThePersonToContact",
+                        data: formData,
+                        timeout: 30000,
+                        success: function(response, status, xhr) {
+                            app.dialog.close();
+                            app.dialog.alert("An email notification has been sent to " + name + ".", "Email Sent");
+                        },
+                        error: function(xhr, status) {
+                            let error = JSON.parse(xhr.response);
+                            let errorMessage = (error.errors) ? error.errors : "Unable to connect to server.";
+
+                            app.dialog.close();
+                            app.dialog.alert(errorMessage, "Error");
+                        }
+                    });
+                }
+            }
+        ]
+    }).open();
+});
+$$(document).on("click", "#call-the-person-to-contact", function() {
+    let contactNumber = $$("#person-to-contact #contact-number").html();
+
+    window.plugins.webintent.startActivity({
+        action: window.plugins.webintent.ACTION_VIEW,
+        url: 'tel:' + contactNumber
+    }, function() {}, function() {alert('Failed to open URL via Android Intent')});
+});
+$$(document).on("click", "#message-the-person-to-contact", function() {
+    let subAccountName = $$("#person-to-contact").attr("data-sub-account-name");
+    let responderName = $$("#person-to-contact").attr("data-responder-name");
+    let name = $$("#person-to-contact #name").html();
+    let contactNumber = $$("#person-to-contact #contact-number").html();
+
+    window.plugins.webintent.startActivity({
+        action: window.plugins.webintent.ACTION_VIEW,
+        url: 'sms:' + contactNumber + '?&body=Hello ' + name + ', I\'m sorry to inform you that an emergency has happened to ' + subAccountName + '. He/She is now being transported to ' + responderName + '.'
+    }, function() {}, function() {alert('Failed to open URL via Android Intent')});
+});
 
 // Responder Home Page
 let isLoadingAlerts = false;
@@ -1510,7 +1590,7 @@ let loadAlerts = function() {
                     content += '                <div class="item-title view-emergency" data-alert-id="' + alerts[i].id + '">';
                     content += '                    <div class="item-header">Name</div>';
                     content += '                    <div class="alert-sub-account-name">' + alerts[i].name + '</div>';
-                    content += '                    <div class="item-footer">Account: ' + alerts[i].firstname + ' ' + alerts[i].middlename + ' ' + alerts[i].lastname + '</div>';
+                    content += '                    <div class="item-footer">Account: ' + alerts[i].firstname + ' ' + ((alerts[i].middlename) ? alerts[i].middlename + ' ' : '') + alerts[i].lastname + '</div>';
                     content += '                </div>';
                     content += '                <div class="item-after">';
                     content += '                    <div>';

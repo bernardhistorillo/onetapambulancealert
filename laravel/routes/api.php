@@ -50,4 +50,5 @@ Route::post('/loadAlerts', [AlertController::class, 'loadAlerts']);
 Route::post('/respond', [AlertController::class, 'respond']);
 Route::post('/stopResponse', [AlertController::class, 'stopResponse']);
 Route::post('/completeResponse', [AlertController::class, 'completeResponse']);
+Route::post('/emailThePersonToContact', [AlertController::class, 'emailThePersonToContact']);
 

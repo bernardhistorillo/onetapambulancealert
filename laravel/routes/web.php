@@ -19,6 +19,17 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+Route::get('/try', function() {
+    $data['subAccountName'] = 'Bernard Historillo';
+    $data['responderName'] = 'Bicol Regional Training and Teaching Hospital';
+    $data['responderLatitude'] = '13.1420677';
+    $data['responderLongitude'] = '123.7206575';
+    $data['name'] = 'Spike Historillo';
+    $data['email'] = 'bernardhistorillo1@gmail.com';
+
+    return view('emails.personToContact', compact('data'));
+});
+
 Route::middleware(['guest'])->group(function() {
     Route::get('/', [AuthenticationController::class, 'loginPage'])->name('auth.loginPage');
     Route::post('/login', [AuthenticationController::class, 'login'])->name('auth.login');

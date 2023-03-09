@@ -90,16 +90,86 @@
 						<i class="icon icon-back"></i>
 					</a>
 				</div>
-				<div class="title">Medical Records</div>
+				<div class="title">Details</div>
 			</div>
 		</div>
-		
-		<div class="list media-list chevron-center display-none" id="alert-medical-records-container" style="padding-bottom:56px">
-			<ul></ul>
-		</div>
-		
-		<div class="card" id="alert-no-medical-records" style="margin-left:0; margin-right:0">
-			<div class="card-content-padding text-align-center">No medical records added.</div>
+
+		<div style="max-height:calc(100vh - 56px); overflow: auto">
+			<div class="block-title">Medical Records</div>
+			<div class="list media-list chevron-center display-none" id="alert-medical-records-container">
+				<ul></ul>
+			</div>
+
+			<div class="card" id="alert-no-medical-records" style="margin-left:0; margin-right:0">
+				<div class="card-content-padding text-align-center">No medical records added.</div>
+			</div>
+
+			<div class="block-title">Person to Contact</div>
+			<div class="list chevron-center" id="person-to-contact">
+				<ul>
+					<li>
+						<div class="item-content">
+							<div class="item-media">
+								<i class="f7-icons">person</i>
+							</div>
+							<div class="item-inner">
+								<div class="item-title">
+									<div class="item-header">Name</div>
+									<div id="name"></div>
+								</div>
+							</div>
+						</div>
+					</li>
+					<li>
+						<div class="item-content">
+							<div class="item-media">
+								<i class="f7-icons">envelope</i>
+							</div>
+							<div class="item-inner">
+								<div class="item-title">
+									<div class="item-header">Email Address</div>
+									<div id="email"></div>
+								</div>
+							</div>
+						</div>
+					</li>
+					<li>
+						<div class="item-content">
+							<div class="item-media">
+								<i class="f7-icons">phone</i>
+							</div>
+							<div class="item-inner">
+								<div class="item-title">
+									<div class="item-header">Contact Number</div>
+									<div id="contact-number"></div>
+								</div>
+							</div>
+						</div>
+					</li>
+				</ul>
+			</div>
+
+			<div class="block" style="margin-top:20px">
+				<div class="display-flex justify-content-space-around">
+					<div class="padding">
+						<button class="col button button-fill button-round" id="email-the-person-to-contact" style="width:70px; height:70px">
+							<i class="f7-icons">envelope</i>
+						</button>
+					</div>
+
+					<div class="padding">
+						<button class="col button button-fill button-round" id="call-the-person-to-contact" style="width:70px; height:70px">
+							<i class="f7-icons">phone</i>
+						</button>
+					</div>
+
+					<div class="padding">
+						<button class="col button button-fill button-round" id="message-the-person-to-contact" style="width:70px; height:70px">
+							<i class="f7-icons">chat_bubble_text</i>
+						</button>
+					</div>
+				</div>
+			</div>
 		</div>
 	</div>
 </div>

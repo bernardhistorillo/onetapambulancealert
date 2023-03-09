@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\PersonToContact;
+use App\Mail\ReserveTable;
 use App\Models\Alert;
 use App\Models\AlertResponder;
 use App\Models\MedicalRecord;
@@ -11,6 +13,8 @@ use App\Models\SubAccount;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Password;
 
 class AlertController extends Controller
 {
@@ -100,6 +104,7 @@ class AlertController extends Controller
         $alert['messages'] = $alert->messages();
         $alert['alertResponders'] = $alert->alertResponders();
         $alert['subAccount'] = $alert->subAccount();
+        $alert['user'] = $alert->subAccount()->user();
         $alert['medicalRecords'] = $alert['subAccount']->medicalRecords();
 
         return response()->json([
@@ -179,5 +184,20 @@ class AlertController extends Controller
         return response()->json([
             'alertResponder' => $alertResponder
         ]);
+    }
+
+    public function emailThePersonToContact(Request $request) {
+        $request->validate([
+            'subAccountName' => 'required|string',
+            'responderName' => 'required|string',
+            'responderLatitude' => 'required',
+            'responderLongitude' => 'required',
+            'name' => 'required|string',
+            'email' => 'required|email',
+        ]);
+
+        Mail::to($request->email)->send(new PersonToContact($request->only('subAccountName', 'responderName', 'responderLatitude', 'responderLongitude', 'name', 'email')));
+
+        return response()->json();
     }
 }

@@ -53,6 +53,9 @@ class AuthenticationController extends Controller
             'email' => 'required|email',
             'contact_number' => 'required|numeric',
             'address' => 'required|string',
+            'person_to_contact_name' => 'required|string',
+            'person_to_contact_email' => 'required|email',
+            'person_to_contact_contact_number' => 'required|numeric',
             'password' => 'required|string'
         ]);
 
@@ -73,6 +76,9 @@ class AuthenticationController extends Controller
         $user->email = $request->email;
         $user->contact_number = $request->contact_number;
         $user->address = $request->address;
+        $user->person_to_contact_name = $request->person_to_contact_name;
+        $user->person_to_contact_email = $request->person_to_contact_email;
+        $user->person_to_contact_contact_number = $request->person_to_contact_contact_number;
         $user->password = Hash::make($request->password);
         $user->role = 3;
         $user->save();
