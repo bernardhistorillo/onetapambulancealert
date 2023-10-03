@@ -21,7 +21,7 @@
 // See https://cordova.apache.org/docs/en/latest/cordova/events/events.html#deviceready
 
 let env = "local"; // prod or local
-let version = "1_0_7"; // prod or local
+let version = "1_0_8"; // prod or local
 let routes = [
     {
         path: '/',
@@ -72,7 +72,7 @@ let app = new Framework7({
 });
 let $$ = Dom7;
 let view = app.views.create('.view-main');
-let host = (env === "local") ? 'http://127.0.0.1:8000' : 'https://otaa.mxtrade.io';
+let host = (env === "local") ? 'http://127.0.0.1:8000' : 'https://otaa.wearehonu.com';
 
 let onDeviceReady = function() {
     document.addEventListener("backbutton", onBackKeyDown, false);
