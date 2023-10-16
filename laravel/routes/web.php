@@ -6,6 +6,7 @@ use App\Http\Controllers\AuthenticationController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ResponderController;
 use App\Http\Controllers\UserController;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -20,6 +21,8 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/try', function() {
+    return Hash::make('Password1');
+
     $data['subAccountName'] = 'Bernard Historillo';
     $data['responderName'] = 'Bicol Regional Training and Teaching Hospital';
     $data['responderLatitude'] = '13.1420677';
