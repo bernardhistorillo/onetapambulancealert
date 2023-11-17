@@ -262,8 +262,8 @@ let getSelectedSubAccount = function() {
     return selectedSubAccount;
 }
 let loadHomePage = async function() {
-    clockAudio = (env === "prod") ? new Media('https://otaa.wearehonu.com/img/clock.mp3') : new Audio("audio/clock.mp3");
-    notificationAudio = (env === "prod") ? new Media('https://otaa.wearehonu.com/img/notification.wav') : new Audio("audio/notification.wav");
+    clockAudio = (env === "prod") ? new Media(host + '/img/clock.mp3') : new Audio("audio/clock.mp3");
+    notificationAudio = (env === "prod") ? new Media(host + '/img/notification.wav') : new Audio("audio/notification.wav");
 
     let authUser = getUser();
 
@@ -889,7 +889,7 @@ let loadAlertPage = function() {
 
             if(!alert) {
                 if(!clockAudio) {
-                    clockAudio = (env === "prod") ? new Media('https://otaa.mxtrade.io/img/clock.mp3', loadAlertPageContent()) : new Audio("audio/clock.mp3", loadAlertPageContent());
+                    clockAudio = (env === "prod") ? new Media(host + '/img/clock.mp3', loadAlertPageContent()) : new Audio("audio/clock.mp3", loadAlertPageContent());
                 } else {
                     loadAlertPageContent()
                 }
